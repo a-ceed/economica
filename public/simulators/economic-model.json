@@ -1,0 +1,556 @@
+{
+  "title": "Экономическая модель",
+  "version": "2.0",
+  "nodes": [
+    {
+      "id": 4,
+      "type": "enterprise",
+      "x": 392.1737311663061,
+      "y": 482.4457890821634,
+      "label": "Предприятие 4",
+      "balance": 1000000,
+      "functions": [
+        {
+          "id": 9,
+          "type": "trade_in",
+          "nodeId": 4,
+          "name": "Торговля вход",
+          "cycleIncome": 0,
+          "totalIncome": 0
+        },
+        {
+          "id": 10,
+          "type": "trade_out",
+          "nodeId": 4,
+          "name": "Торговля выход",
+          "minAmount": 50000,
+          "maxAmount": 150000
+        },
+        {
+          "id": 15,
+          "type": "credit_node",
+          "nodeId": 4,
+          "name": "Кредит",
+          "cycleReceived": 0,
+          "totalReceived": 0,
+          "payment": 0,
+          "remaining": 0,
+          "active": false
+        },
+        {
+          "id": 19,
+          "type": "trade_in",
+          "nodeId": 4,
+          "name": "Торговля",
+          "cycleIncome": 0,
+          "totalIncome": 0
+        },
+        {
+          "id": 20,
+          "type": "trade_out",
+          "nodeId": 4,
+          "name": "Торговля",
+          "minAmount": 50000,
+          "maxAmount": 150000
+        },
+        {
+          "id": 33,
+          "type": "send_out",
+          "nodeId": 4,
+          "name": "Отправление",
+          "amount": 30000,
+          "duration": -1,
+          "remaining": -1
+        },
+        {
+          "id": 34,
+          "type": "receive_in",
+          "nodeId": 4,
+          "name": "Прием",
+          "cycleIncome": 0,
+          "totalIncome": 0
+        },
+        {
+          "id": 39,
+          "type": "production",
+          "nodeId": 4,
+          "name": "Производство",
+          "cycleProduced": 0,
+          "totalProduced": 0,
+          "produceByBalance": true,
+          "monthlyProduction": 0
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "enterprise",
+      "x": 949.4527070548963,
+      "y": 479.4203478794596,
+      "label": "Предприятие 5",
+      "balance": 1000000,
+      "functions": [
+        {
+          "id": 11,
+          "type": "trade_in",
+          "nodeId": 5,
+          "name": "Торговля вход",
+          "cycleIncome": 0,
+          "totalIncome": 0
+        },
+        {
+          "id": 12,
+          "type": "trade_out",
+          "nodeId": 5,
+          "name": "Торговля выход",
+          "minAmount": 50000,
+          "maxAmount": 150000
+        },
+        {
+          "id": 16,
+          "type": "credit_node",
+          "nodeId": 5,
+          "name": "Кредит",
+          "cycleReceived": 0,
+          "totalReceived": 0,
+          "payment": 0,
+          "remaining": 0,
+          "active": false
+        },
+        {
+          "id": 23,
+          "type": "trade_in",
+          "nodeId": 5,
+          "name": "Торговля",
+          "cycleIncome": 0,
+          "totalIncome": 0
+        },
+        {
+          "id": 24,
+          "type": "trade_out",
+          "nodeId": 5,
+          "name": "Торговля",
+          "minAmount": 50000,
+          "maxAmount": 150000
+        },
+        {
+          "id": 29,
+          "type": "send_out",
+          "nodeId": 5,
+          "name": "Отправление",
+          "amount": 30000,
+          "duration": -1,
+          "remaining": -1
+        },
+        {
+          "id": 30,
+          "type": "receive_in",
+          "nodeId": 5,
+          "name": "Прием",
+          "cycleIncome": 0,
+          "totalIncome": 0
+        },
+        {
+          "id": 40,
+          "type": "production",
+          "nodeId": 5,
+          "name": "Производство",
+          "cycleProduced": 0,
+          "totalProduced": 0,
+          "produceByBalance": true,
+          "monthlyProduction": 0
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "bank",
+      "x": 635.9292387549559,
+      "y": 111.96540230740084,
+      "label": "Банк 6",
+      "balance": 1000000,
+      "functions": [
+        {
+          "id": 13,
+          "type": "credit_bank",
+          "nodeId": 6,
+          "name": "Кредитование",
+          "amount": 120000,
+          "rate": 10,
+          "term": 12,
+          "frequency": 24,
+          "monthsToNext": 1,
+          "lastIssue": -1000,
+          "cycleIncome": 0,
+          "totalIncome": 0
+        },
+        {
+          "id": 14,
+          "type": "credit_bank",
+          "nodeId": 6,
+          "name": "Кредитование",
+          "amount": 120000,
+          "rate": 10,
+          "term": 12,
+          "frequency": 24,
+          "monthsToNext": 1,
+          "lastIssue": -1000,
+          "cycleIncome": 0,
+          "totalIncome": 0
+        },
+        {
+          "id": 22,
+          "type": "credit_bank",
+          "nodeId": 6,
+          "name": "Кредитование",
+          "amount": 120000,
+          "rate": 10,
+          "term": 12,
+          "frequency": 24,
+          "monthsToNext": 1,
+          "lastIssue": -1000,
+          "cycleIncome": 0,
+          "totalIncome": 0
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "enterprise",
+      "x": 405.05455805610694,
+      "y": 1037.0117875450853,
+      "label": "Предприятие 7",
+      "balance": 1000000,
+      "functions": [
+        {
+          "id": 17,
+          "type": "trade_in",
+          "nodeId": 7,
+          "name": "Торговля вход",
+          "cycleIncome": 0,
+          "totalIncome": 0
+        },
+        {
+          "id": 18,
+          "type": "trade_out",
+          "nodeId": 7,
+          "name": "Торговля выход",
+          "minAmount": 50000,
+          "maxAmount": 150000
+        },
+        {
+          "id": 21,
+          "type": "credit_node",
+          "nodeId": 7,
+          "name": "Кредит",
+          "cycleReceived": 0,
+          "totalReceived": 0,
+          "payment": 0,
+          "remaining": 0,
+          "active": false
+        },
+        {
+          "id": 25,
+          "type": "trade_out",
+          "nodeId": 7,
+          "name": "Торговля",
+          "minAmount": 50000,
+          "maxAmount": 150000
+        },
+        {
+          "id": 26,
+          "type": "trade_in",
+          "nodeId": 7,
+          "name": "Торговля",
+          "cycleIncome": 0,
+          "totalIncome": 0
+        },
+        {
+          "id": 37,
+          "type": "send_out",
+          "nodeId": 7,
+          "name": "Отправление",
+          "amount": 30000,
+          "duration": -1,
+          "remaining": -1
+        },
+        {
+          "id": 38,
+          "type": "receive_in",
+          "nodeId": 7,
+          "name": "Прием",
+          "cycleIncome": 0,
+          "totalIncome": 0
+        },
+        {
+          "id": 41,
+          "type": "production",
+          "nodeId": 7,
+          "name": "Производство",
+          "cycleProduced": 0,
+          "totalProduced": 0,
+          "produceByBalance": true,
+          "monthlyProduction": 0
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "household",
+      "x": 951.5304128788591,
+      "y": 791.3166955696745,
+      "label": "Домохозяйство 8",
+      "balance": 100000,
+      "functions": [
+        {
+          "id": 27,
+          "type": "receive_in",
+          "nodeId": 8,
+          "name": "Вход",
+          "cycleIncome": 0,
+          "totalIncome": 0
+        },
+        {
+          "id": 28,
+          "type": "send_out",
+          "nodeId": 8,
+          "name": "Выход",
+          "amount": 30000,
+          "duration": -1,
+          "remaining": -1
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "household",
+      "x": 394.3094051311265,
+      "y": 790.1446227158341,
+      "label": "Домохозяйство 9",
+      "balance": 100000,
+      "functions": [
+        {
+          "id": 31,
+          "type": "receive_in",
+          "nodeId": 9,
+          "name": "Вход",
+          "cycleIncome": 0,
+          "totalIncome": 0
+        },
+        {
+          "id": 32,
+          "type": "send_out",
+          "nodeId": 9,
+          "name": "Выход",
+          "amount": 30000,
+          "duration": -1,
+          "remaining": -1
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "household",
+      "x": 408.1909996956649,
+      "y": 1343.0249072012846,
+      "label": "Домохозяйство 10",
+      "balance": 100000,
+      "functions": [
+        {
+          "id": 35,
+          "type": "receive_in",
+          "nodeId": 10,
+          "name": "Вход",
+          "cycleIncome": 0,
+          "totalIncome": 0
+        },
+        {
+          "id": 36,
+          "type": "send_out",
+          "nodeId": 10,
+          "name": "Выход",
+          "amount": 30000,
+          "duration": -1,
+          "remaining": -1
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": 1,
+      "from": 4,
+      "fromFunc": 10,
+      "fromSide": "right",
+      "to": 5,
+      "toFunc": 11,
+      "toSide": "left"
+    },
+    {
+      "id": 2,
+      "from": 5,
+      "fromFunc": 12,
+      "fromSide": "left",
+      "to": 4,
+      "toFunc": 9,
+      "toSide": "right"
+    },
+    {
+      "id": 3,
+      "from": 6,
+      "fromFunc": 13,
+      "fromSide": "left",
+      "fromRow": "top",
+      "to": 4,
+      "toFunc": 15,
+      "toSide": "left",
+      "toRow": "top"
+    },
+    {
+      "id": 4,
+      "from": 4,
+      "fromFunc": 15,
+      "fromSide": "left",
+      "fromRow": "bottom",
+      "to": 6,
+      "toFunc": 13,
+      "toSide": "left",
+      "toRow": "bottom"
+    },
+    {
+      "id": 5,
+      "from": 6,
+      "fromFunc": 14,
+      "fromSide": "right",
+      "fromRow": "top",
+      "to": 5,
+      "toFunc": 16,
+      "toSide": "right",
+      "toRow": "top"
+    },
+    {
+      "id": 6,
+      "from": 5,
+      "fromFunc": 16,
+      "fromSide": "right",
+      "fromRow": "bottom",
+      "to": 6,
+      "toFunc": 14,
+      "toSide": "right",
+      "toRow": "bottom"
+    },
+    {
+      "id": 7,
+      "from": 4,
+      "fromFunc": 20,
+      "fromSide": "left",
+      "to": 7,
+      "toFunc": 17,
+      "toSide": "left"
+    },
+    {
+      "id": 8,
+      "from": 7,
+      "fromFunc": 18,
+      "fromSide": "left",
+      "to": 4,
+      "toFunc": 19,
+      "toSide": "left"
+    },
+    {
+      "id": 9,
+      "from": 6,
+      "fromFunc": 22,
+      "fromSide": "left",
+      "fromRow": "top",
+      "to": 7,
+      "toFunc": 21,
+      "toSide": "left",
+      "toRow": "top"
+    },
+    {
+      "id": 10,
+      "from": 7,
+      "fromFunc": 21,
+      "fromSide": "left",
+      "fromRow": "bottom",
+      "to": 6,
+      "toFunc": 22,
+      "toSide": "left",
+      "toRow": "bottom"
+    },
+    {
+      "id": 11,
+      "from": 7,
+      "fromFunc": 25,
+      "fromSide": "right",
+      "to": 5,
+      "toFunc": 23,
+      "toSide": "left"
+    },
+    {
+      "id": 12,
+      "from": 5,
+      "fromFunc": 24,
+      "fromSide": "left",
+      "to": 7,
+      "toFunc": 26,
+      "toSide": "right"
+    },
+    {
+      "id": 13,
+      "from": 5,
+      "fromFunc": 29,
+      "fromSide": "left",
+      "to": 8,
+      "toFunc": 27,
+      "toSide": "left"
+    },
+    {
+      "id": 14,
+      "from": 8,
+      "fromFunc": 28,
+      "fromSide": "right",
+      "to": 5,
+      "toFunc": 30,
+      "toSide": "right"
+    },
+    {
+      "id": 15,
+      "from": 4,
+      "fromFunc": 33,
+      "fromSide": "right",
+      "to": 9,
+      "toFunc": 31,
+      "toSide": "right"
+    },
+    {
+      "id": 16,
+      "from": 9,
+      "fromFunc": 32,
+      "fromSide": "left",
+      "to": 4,
+      "toFunc": 34,
+      "toSide": "left"
+    },
+    {
+      "id": 17,
+      "from": 7,
+      "fromFunc": 37,
+      "fromSide": "right",
+      "to": 10,
+      "toFunc": 35,
+      "toSide": "right"
+    },
+    {
+      "id": 18,
+      "from": 10,
+      "fromFunc": 36,
+      "fromSide": "left",
+      "to": 7,
+      "toFunc": 38,
+      "toSide": "left"
+    }
+  ],
+  "cycle": 0
+}

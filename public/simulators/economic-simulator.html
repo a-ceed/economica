@@ -1,0 +1,2546 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>СИМС-ЭЧ v.0.1.2</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #1e1e24;
+  --bg2: #16161c;
+  --bg3: #252530;
+  --node-bg: #0d3b5a;
+  --node-border: #1a5a82;
+  --node-header: #0a2e47;
+  --accent: #f97316;
+  --accent2: #f59e0b;
+  --green: #4ade80;
+  --blue: #60a5fa;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --red: #f87171;
+  --disabled: #444;
+  --port-in: #4ade80;
+  --port-out: #f97316;
+  --grid: rgba(255,255,255,0.04);
+  --radius: 8px;
+  --func-out: rgba(249,115,22,0.15);
+  --func-in: rgba(196,132,252,0.15);
+  --func-out-border: rgba(249,115,22,0.3);
+  --func-in-border: rgba(196,132,252,0.3);
+}
+body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; font-size: 13px; overflow: hidden; height: 100vh; display: flex; flex-direction: column; user-select: none; }
+
+/* Top Bar */
+#topbar {
+  height: 48px; background: var(--bg2); border-bottom: 1px solid rgba(255,255,255,0.07);
+  display: flex; align-items: center; gap: 8px; padding: 0 16px; flex-shrink: 0; z-index: 100;
+}
+#topbar h1 { font-size: 14px; font-weight: 600; color: var(--text); margin-right: 8px; white-space: nowrap; }
+.sep { width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 4px; }
+.btn {
+  height: 30px; padding: 0 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05); color: var(--text); cursor: pointer; font-size: 12px;
+  display: flex; align-items: center; gap: 6px; transition: background .15s, border-color .15s; white-space: nowrap;
+}
+.btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.btn.primary:hover { background: #ea6a0d; }
+.btn.success { background: var(--green); border-color: var(--green); color: #052e16; font-weight: 600; }
+.btn.success:hover { background: #22c55e; }
+.btn.danger { background: rgba(248,113,113,0.15); border-color: var(--red); color: var(--red); }
+
+/* Speed control */
+.speed-control {
+  display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2);
+}
+.speed-slider {
+  width: 80px; height: 20px; background: rgba(255,255,255,0.1); border-radius: 10px;
+  outline: none; appearance: none; cursor: pointer;
+}
+.speed-slider::-webkit-slider-thumb {
+  appearance: none; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--accent); cursor: pointer;
+}
+
+#balance-display {
+  margin-left: auto; display: flex; align-items: center; gap: 8px;
+  background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.2);
+  border-radius: 6px; padding: 0 12px; height: 30px; font-size: 12px; color: var(--green);
+}
+#balance-display span { font-weight: 700; font-size: 14px; }
+.stat-chip {
+  display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px;
+  border-radius: 6px; font-size: 11px; white-space: nowrap; border: 1px solid;
+}
+.stat-chip .stat-label { opacity: 0.7; }
+.stat-chip .stat-val   { font-weight: 700; font-size: 13px; }
+.stat-chip.real  { background: rgba(96,165,250,0.08); border-color: rgba(96,165,250,0.25); color: #60a5fa; }
+.stat-chip.bank  { background: rgba(249,115,22,0.08); border-color: rgba(249,115,22,0.25); color: #f97316; }
+.stat-chip.prod  { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.25); color: #f59e0b; }
+#cycle-counter { color: var(--text2); font-size: 12px; white-space: nowrap; }
+
+/* Main layout */
+#main { flex: 1; display: flex; overflow: hidden; }
+
+/* Sidebar */
+#sidebar {
+  width: 260px; background: var(--bg2); border-right: 1px solid rgba(255,255,255,0.07);
+  display: flex; flex-direction: column; flex-shrink: 0; padding: 12px; gap: 8px; z-index: 50;
+  overflow: hidden;
+}
+#sidebar h2 { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; padding: 4px 0; flex-shrink: 0; }
+.node-type-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.sidebar-sep { height: 1px; background: rgba(255,255,255,0.07); margin: 4px 0; flex-shrink: 0; }
+#help-text { font-size: 11px; color: var(--text3); line-height: 1.5; padding: 4px 0; flex-shrink: 0; }
+
+/* Block type dropdown */
+#block-type-menu {
+  position: absolute; z-index: 200; background: var(--bg2);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 7px;
+  padding: 4px; min-width: 160px; display: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+#block-type-menu.open { display: block; }
+.block-type-item {
+  padding: 7px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;
+  color: var(--text2); display: flex; align-items: center; gap: 8px; transition: background .12s;
+}
+.block-type-item:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+
+/* Selected block info panel */
+#block-info {
+  display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;
+}
+#block-info-empty { font-size: 11px; color: var(--text3); line-height: 1.5; padding: 4px 0; }
+#block-info-content { display: none; }
+.bi-name {
+  font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bi-type-badge {
+  display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 10px;
+  font-weight: 600; margin-bottom: 6px;
+}
+.bi-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 11px; color: var(--text2); padding: 2px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.bi-row:last-child { border-bottom: none; }
+.bi-row-label { color: var(--text3); }
+.bi-row-value { font-weight: 600; color: var(--text); text-align: right; max-width: 55%; word-break: break-all; }
+.bi-row-value.accent { color: var(--blue); }
+.bi-row-value.green  { color: var(--green); }
+.bi-row-value.red    { color: var(--red); }
+.bi-row-value.orange { color: var(--accent); }
+.bi-funcs { margin-top: 4px; }
+.bi-func-row {
+  font-size: 10px; color: var(--text3); padding: 2px 0 2px 6px;
+  border-left: 2px solid rgba(255,255,255,0.1); margin: 2px 0;
+  line-height: 1.4;
+}
+/* Inline credit controls in block info */
+.bi-credit-block {
+  margin-top: 6px; border: 1px solid rgba(255,215,0,0.2);
+  border-radius: 5px; padding: 6px 8px; background: rgba(255,215,0,0.04);
+}
+.bi-credit-title {
+  font-size: 10px; font-weight: 700; color: rgba(255,215,0,0.7);
+  letter-spacing: .06em; text-transform: uppercase; margin-bottom: 5px;
+}
+.bi-credit-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 6px; margin-bottom: 4px;
+}
+.bi-credit-row:last-child { margin-bottom: 0; }
+.bi-credit-label { font-size: 10px; color: var(--text3); white-space: nowrap; }
+.bi-credit-input {
+  width: 64px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px; color: var(--text); font-size: 11px; font-weight: 600;
+  padding: 2px 5px; text-align: right; outline: none;
+}
+.bi-credit-input:focus { border-color: rgba(255,215,0,0.5); background: rgba(255,215,0,0.07); }
+.bi-credit-unit { font-size: 10px; color: var(--text3); white-space: nowrap; }
+.bi-credit-stat { font-size: 10px; color: var(--text3); text-align: right; }
+.bi-dyn { /* dynamic values updated without rebuild */ }
+
+/* Bottom chart panels */
+#bottom-panels {
+  height: 190px; flex-shrink: 0; display: flex;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  background: var(--bg2); z-index: 10;
+}
+.chart-panel {
+  flex: 1; display: flex; flex-direction: column; padding: 8px 10px 6px;
+  border-right: 1px solid rgba(255,255,255,0.07); min-width: 0; overflow: hidden;
+}
+.chart-panel:last-child { border-right: none; }
+.chart-header {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; margin-bottom: 4px;
+}
+.chart-title {
+  font-size: 10px; font-weight: 600; color: var(--text3);
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.chart-legend {
+  display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 9px; color: var(--text3); white-space: nowrap;
+}
+.legend-dot {
+  width: 18px; height: 2px; border-radius: 1px; flex-shrink: 0;
+}
+.chart-canvas-wrap { flex: 1; min-height: 0; position: relative; }
+.chart-canvas-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.chart-mode-toggle {
+  display: flex; border: 1px solid rgba(255,255,255,0.12); border-radius: 5px;
+  overflow: hidden; flex-shrink: 0;
+}
+.cmt-btn {
+  padding: 2px 8px; font-size: 9px; font-weight: 600; cursor: pointer;
+  background: transparent; color: var(--text3); border: none; outline: none;
+  transition: background .12s, color .12s; letter-spacing: .03em;
+}
+.cmt-btn:hover { background: rgba(255,255,255,0.07); color: var(--text2); }
+.cmt-btn.active { background: rgba(249,115,22,0.25); color: var(--accent); }
+
+/* Event log */
+#log-wrap {
+  flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+}
+#log-list {
+  flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+#log-list::-webkit-scrollbar { width: 4px; }
+#log-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+.log-cycle-header {
+  font-size: 10px; font-weight: 700; color: var(--text3); padding: 4px 0 2px;
+  border-top: 1px solid rgba(255,255,255,0.06); margin-top: 2px; flex-shrink: 0;
+}
+.log-entry {
+  font-size: 10px; color: var(--text2); padding: 2px 4px; border-radius: 3px;
+  line-height: 1.4; word-break: break-word; flex-shrink: 0;
+}
+.log-entry.log-credit  { color: #fbbf24; }
+.log-entry.log-repay   { color: #2dd4bf; }
+.log-entry.log-trade   { color: #fb923c; }
+.log-entry.log-bankrupt{ color: #f87171; font-weight: 600; }
+.log-entry.log-fail    { color: #f87171; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+.log-entry.log-info    { color: var(--text3); }
+#log-clear {
+  font-size: 10px; color: var(--text3); cursor: pointer; text-align: right;
+  padding: 2px 0; flex-shrink: 0;
+}
+#log-clear:hover { color: var(--text2); }
+
+/* Canvas */
+#canvas-wrap { flex: 1; position: relative; overflow: hidden; }
+#canvas-svg { width: 100%; height: 100%; cursor: default; }
+#grid-bg { pointer-events: none; }
+
+/* Nodes */
+.node-group { cursor: move; }
+.node-group:hover .node-body { filter: brightness(1.1); }
+.node-body { rx: 8; ry: 8; }
+.node-header-rect {}
+.node-title { font-size: 12px; font-weight: 600; fill: #e2e8f0; }
+.node-selected .node-body { stroke: var(--blue) !important; stroke-width: 1.5 !important; }
+
+/* Function rows inside nodes */
+.func-row-out { fill: var(--func-out); stroke: var(--func-out-border); }
+.func-row-in { fill: var(--func-in); stroke: var(--func-in-border); }
+.func-label { font-size: 10px; fill: #e2e8f0; font-weight: 500; }
+.func-value { font-size: 9px; fill: #94a3b8; }
+.balance-row { fill: rgba(96,165,250,0.07); stroke: rgba(96,165,250,0.2); }
+.balance-label { font-size: 11px; fill: #e2e8f0; font-weight: 600; }
+.balance-value { font-size: 11px; font-weight: 600; fill: #60a5fa; }
+
+.port { cursor: crosshair; transition: r .1s; }
+.port:hover { r: 7; }
+.add-func-btn { cursor: pointer; fill: rgba(255,255,255,0.05); stroke: rgba(255,255,255,0.15); }
+.add-func-btn:hover { fill: rgba(255,255,255,0.1); }
+.add-func-text { font-size: 10px; fill: #94a3b8; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+
+/* Dual function block */
+.dual-frame { fill: rgba(255,215,0,0.03); stroke: rgba(255,215,0,0.25); }
+.dual-label { font-size: 8px; fill: rgba(255,215,0,0.5); text-anchor: middle; dominant-baseline: central; pointer-events: none; letter-spacing: .06em; }
+.dual-sep { stroke: rgba(255,255,255,0.1); }
+
+/* Edge paths */
+.edge-path { fill: none; stroke-width: 3; stroke-linecap: round; marker-start: url(#arrowhead-start); marker-mid: url(#arrowhead-mid); marker-end: url(#arrowhead-end); }
+.edge-preview { fill: none; stroke: rgba(249,115,22,0.5); stroke-width: 3; stroke-dasharray: 8 6; pointer-events: none; }
+
+/* Tooltip */
+#tooltip {
+  position: fixed; background: var(--bg2); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px; padding: 6px 10px; font-size: 11px; color: var(--text);
+  pointer-events: none; z-index: 999; display: none; white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+/* Function selector popup */
+#func-selector {
+  position: fixed; z-index: 400; display: none;
+  background: var(--bg2); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px; padding: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  min-width: 260px; max-width: 320px;
+}
+#func-selector h3 { font-size: 12px; color: var(--text); margin-bottom: 8px; }
+.func-option {
+  padding: 8px 12px; border-radius: 6px; cursor: pointer;
+  font-size: 11px; color: var(--text2); display: flex; flex-direction: column; gap: 2px;
+  border: 1px solid transparent; margin-bottom: 4px;
+}
+.func-option:hover { background: rgba(255,255,255,0.05); color: var(--text); border-color: rgba(255,255,255,0.1); }
+.func-option-title { font-weight: 600; }
+.func-option-desc { font-size: 10px; color: var(--text3); }
+
+/* Function edit dialog */
+#func-edit-dialog {
+  position: fixed; z-index: 500; display: none;
+  background: var(--bg2); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px; padding: 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+  min-width: 300px; max-width: 400px;
+}
+#func-edit-dialog h3 { font-size: 14px; color: var(--text); margin-bottom: 12px; }
+.form-group { margin-bottom: 10px; }
+.form-label { display: block; font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+.form-input { width: 100%; padding: 6px 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; color: var(--text); font-size: 11px; }
+.form-input:focus { outline: none; border-color: var(--blue); }
+.form-select { width: 100%; padding: 6px 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; color: var(--text); font-size: 11px; }
+.dialog-buttons { display: flex; gap: 8px; margin-top: 12px; }
+.dialog-buttons .btn { height: 32px; }
+
+/* Context menu */
+#ctx-menu {
+  position: fixed; z-index: 300; display: none;
+  background: var(--bg2); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  min-width: 160px;
+}
+.ctx-item {
+  padding: 7px 12px; border-radius: 5px; cursor: pointer;
+  font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 8px;
+}
+.ctx-item:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+.ctx-item.danger { color: var(--red); }
+.ctx-item.danger:hover { background: rgba(248,113,113,0.1); }
+.ctx-sep { height: 1px; background: rgba(255,255,255,0.08); margin: 3px 0; }
+
+/* Notification */
+#notif {
+  position: fixed; bottom: 20px; right: 20px; z-index: 500;
+  background: var(--bg2); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px; padding: 10px 16px; font-size: 12px; color: var(--text);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: none; max-width: 260px;
+}
+
+@media (max-width: 640px) {
+  #sidebar { width: 48px; padding: 8px 6px; }
+  #sidebar h2, .node-type-item span, #help-text { display: none; }
+  .node-type-item { justify-content: center; padding: 8px; }
+  #topbar h1 { display: none; }
+  .speed-control { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div id="topbar">
+  <h1 title="Симулятор экономический имени министра промышленности республики Кубы Эрнесто Че Гевары">СИМС-ЭЧ v.0.1.2</h1>
+  <div class="sep"></div>
+  <div style="position:relative">
+    <button class="btn" onclick="toggleBlockMenu(event)" title="Добавить блок (N)">+ Блок</button>
+    <div id="block-type-menu">
+      <div class="block-type-item" onclick="addNode('enterprise');closeBlockMenu()"><div class="node-type-dot" style="background:#60a5fa"></div>Предприятие</div>
+      <div class="block-type-item" onclick="addNode('bank');closeBlockMenu()"><div class="node-type-dot" style="background:#f97316"></div>Банк</div>
+      <div class="block-type-item" onclick="addNode('state');closeBlockMenu()"><div class="node-type-dot" style="background:#4ade80"></div>Государство</div>
+      <div class="block-type-item" onclick="addNode('household');closeBlockMenu()"><div class="node-type-dot" style="background:#c084fc"></div>Домохозяйство</div>
+      <div class="block-type-item" onclick="addNode('source');closeBlockMenu()"><div class="node-type-dot" style="background:#f59e0b"></div>Источник</div>
+    </div>
+  </div>
+  <button class="btn" onclick="saveFlow()" title="Сохранить">💾 Сохранить</button>
+  <button class="btn" onclick="loadFlow()" title="Загрузить">📁 Открыть</button>
+  <button class="btn danger" onclick="clearAll()" title="Очистить">🗑</button>
+  <div class="sep"></div>
+  <button id="run-btn" class="btn success" onclick="toggleSim()">▶ Запустить</button>
+  <button class="btn" onclick="resetSim()" title="Сбросить к состоянию до запуска">↺ Сброс</button>
+  <div class="speed-control">
+    <span>Скорость:</span>
+    <input type="range" class="speed-slider" id="speed-slider" min="0.5" max="10" step="0.5" value="1" oninput="updateSpeed()">
+    <span id="speed-label">1x</span>
+  </div>
+  <div id="balance-display">💰 Всего: <span id="total-balance">0</span> ₽</div>
+  <div class="stat-chip real" title="Сумма денег у всех участников кроме банков"><span class="stat-label">Реальный сектор:</span><span class="stat-val" id="stat-real">0</span> ₽</div>
+  <div class="stat-chip bank" title="Сумма денег у всех банков"><span class="stat-label">Банки:</span><span class="stat-val" id="stat-bank">0</span> ₽</div>
+  <div class="stat-chip prod" title="Суммарный выпуск продукции в месяц"><span class="stat-label">Продукция:</span><span class="stat-val" id="stat-prod">0</span> ед.</div>
+  <div id="cycle-counter">Месяц: <b id="cycle-num">0</b></div>
+  <input type="file" id="file-input" accept=".json,.flow.json" style="display:none" onchange="onFileLoad(event)">
+</div>
+
+<!-- Main -->
+<div id="main">
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <h2>Выбранный блок</h2>
+    <div id="block-info">
+      <div id="block-info-empty">Нажмите на блок,<br>чтобы увидеть информацию о нём</div>
+      <div id="block-info-content"></div>
+    </div>
+    <div class="sidebar-sep"></div>
+    <h2>Управление</h2>
+    <div id="help-text">
+      <b>ПКМ</b> на блоке — меню<br>
+      <b>Drag</b> с порта — связь<br>
+      <b>Del</b> — удалить<br>
+      <b>Ctrl+Z</b> — отмена
+    </div>
+    <div class="sidebar-sep"></div>
+    <div id="log-wrap">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+        <h2 style="padding:0">История операций</h2>
+        <span id="log-clear" onclick="clearLog()" title="Очистить лог">✕ очистить</span>
+      </div>
+      <div id="log-list"></div>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <div id="canvas-wrap">
+    <svg id="canvas-svg" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid-pat" width="24" height="24" patternUnits="userSpaceOnUse">
+          <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+        </pattern>
+        <marker id="arrowhead-end" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M1 1L9 5L1 9Z" fill="#f97316"/>
+        </marker>
+        <marker id="arrowhead-mid" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M1 1L9 5L1 9Z" fill="#f97316"/>
+        </marker>
+        <marker id="arrowhead-start" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M1 1L9 5L1 9Z" fill="#f97316"/>
+        </marker>
+      </defs>
+      <rect id="grid-bg" width="100%" height="100%" fill="url(#grid-pat)"/>
+      <g id="edges-layer"></g>
+      <g id="nodes-layer"></g>
+      <path id="preview-edge" class="edge-preview" d="" style="display:none"/>
+    </svg>
+  </div>
+</div>
+
+<!-- Bottom chart panels -->
+<div id="bottom-panels">
+  <div class="chart-panel">
+    <div class="chart-header">
+      <div style="display:flex;align-items:center;gap:8px;min-width:0">
+        <div class="chart-mode-toggle">
+          <button class="cmt-btn active" id="cmt-bal-window" onclick="setChartMode('balances','window')">Окно</button>
+          <button class="cmt-btn"        id="cmt-bal-all"    onclick="setChartMode('balances','all')">Всё</button>
+        </div>
+        <span class="chart-title">Балансы участников</span>
+      </div>
+      <div class="chart-legend" id="legend-balances"></div>
+    </div>
+    <div class="chart-canvas-wrap">
+      <canvas id="chart-balances"></canvas>
+    </div>
+  </div>
+  <div class="chart-panel">
+    <div class="chart-header">
+      <div style="display:flex;align-items:center;gap:8px;min-width:0">
+        <div class="chart-mode-toggle">
+          <button class="cmt-btn active" id="cmt-eco-window" onclick="setChartMode('economy','window')">Окно</button>
+          <button class="cmt-btn"        id="cmt-eco-all"    onclick="setChartMode('economy','all')">Всё</button>
+        </div>
+        <span class="chart-title">Реальная экономика &amp; Производство</span>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#4ade80"></div>Деньги (без банков)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Товаров/месяц</div>
+      </div>
+    </div>
+    <div class="chart-canvas-wrap">
+      <canvas id="chart-economy"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div id="tooltip"></div>
+
+<!-- Function selector -->
+<div id="func-selector">
+  <h3>Выберите функцию</h3>
+  <div class="func-option" onclick="selectFunction('credit_bank')">
+    <div class="func-option-title">⭐ Кредитование (Банк)</div>
+    <div class="func-option-desc">Выдаёт кредиты и принимает платежи — 2 строки</div>
+  </div>
+  <div class="func-option" onclick="selectFunction('credit_node')">
+    <div class="func-option-title">⭐ Кредит (Заёмщик)</div>
+    <div class="func-option-desc">Получает кредит и возвращает платежи — 2 строки</div>
+  </div>
+  <div class="func-option" onclick="selectFunction('trade_out')">
+    <div class="func-option-title">Торговля (Выход)</div>
+    <div class="func-option-desc">Случайная сумма в заданном диапазоне</div>
+  </div>
+  <div class="func-option" onclick="selectFunction('trade_in')">
+    <div class="func-option-title">Торговля (Вход)</div>
+    <div class="func-option-desc">Принимает торговые поступления</div>
+  </div>
+  <div class="func-option" onclick="selectFunction('send_out')">
+    <div class="func-option-title">Отправление (Выход)</div>
+    <div class="func-option-desc">Регулярные переводы</div>
+  </div>
+  <div class="func-option" onclick="selectFunction('receive_in')">
+    <div class="func-option-title">Прием (Вход)</div>
+    <div class="func-option-desc">Принимает любые поступления</div>
+  </div>
+  <div class="func-option" onclick="selectFunction('production')">
+    <div class="func-option-title">⚙ Производство</div>
+    <div class="func-option-desc">Показывает объём производства — 1/10 от баланса в цикл</div>
+  </div>
+</div>
+
+<!-- Function edit dialog -->
+<div id="func-edit-dialog">
+  <h3 id="func-edit-title">Настройка функции</h3>
+  <div id="func-edit-form"></div>
+  <div class="dialog-buttons">
+    <button class="btn" onclick="closeFuncDialog()">Отмена</button>
+    <button class="btn primary" onclick="saveFuncSettings()">Сохранить</button>
+    <button class="btn danger" onclick="deleteFuncFromDialog()">Удалить</button>
+  </div>
+</div>
+
+<!-- Context menu -->
+<div id="ctx-menu">
+  <div class="ctx-item" id="ctx-rename">✏ Переименовать</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-disconnect">✂ Удалить связи</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" id="ctx-delete">🗑 Удалить блок</div>
+</div>
+
+<!-- Notification -->
+<div id="notif"></div>
+
+<script>
+// ─── Constants ────────────────────────────────────────────────────────────────
+const NODE_W = 240;
+const ROW_H = 24;
+const HEADER_H = 28;
+const BALANCE_H = 24;
+const DUAL_TAB_H = 14; // name-tab header above dual function rows
+const FUNC_GAP   = 3;  // vertical gap between consecutive functions
+
+const TYPE_COLORS = {
+  enterprise: '#0d3b5a',
+  bank:       '#1a2a1a', 
+  state:      '#1a1a2e',
+  household:  '#1e1020',
+  source:     '#1a1500',
+};
+const TYPE_ACCENT = {
+  enterprise: '#60a5fa',
+  bank:       '#f97316',
+  state:      '#4ade80',
+  household:  '#c084fc',
+  source:     '#f59e0b',
+};
+const TYPE_LABEL = {
+  enterprise: 'Предприятие',
+  bank:       'Банк', 
+  state:      'Государство',
+  household:  'Домохозяйство',
+  source:     'Источник',
+};
+
+const FUNC_TYPES = {
+  lend_out:    { name: 'Выдача кредита', type: 'out', color: 'var(--func-out)' },
+  repay_out:   { name: 'Отдача кредита', type: 'out', color: 'var(--func-out)' },
+  trade_out:   { name: 'Торговля',       type: 'out', color: 'var(--func-out)' },
+  trade_in:    { name: 'Торговля',       type: 'in',  color: 'var(--func-in)'  },
+  send_out:    { name: 'Отправление',    type: 'out', color: 'var(--func-out)' },
+  receive_in:  { name: 'Прием',          type: 'in',  color: 'var(--func-in)'  },
+  // Dual-row combined functions
+  credit_bank: { name: 'Кредитование',   type: 'dual', topIsOut: true  }, // top=OUT(выдача), bottom=IN(возврат)
+  credit_node: { name: 'Кредит',         type: 'dual', topIsOut: false }, // top=IN(получить), bottom=OUT(платёж)
+  // Info-only (no ports)
+  production:  { name: 'Производство',   type: 'info' },
+};
+
+// ─── Dual-function helpers ─────────────────────────────────────────────────────
+function isDual(func) { return FUNC_TYPES[func.type]?.type === 'dual'; }
+function funcRowHeight(func) {
+  if (isDual(func)) return DUAL_TAB_H + 2 * ROW_H + FUNC_GAP;
+  return ROW_H + FUNC_GAP;
+}
+function getFuncBaseY(node, funcIndex) {
+  let y = HEADER_H + BALANCE_H;
+  for (let i = 0; i < funcIndex; i++) y += funcRowHeight(node.functions[i]);
+  return y;
+}
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let nodes = [];
+let edges = [];
+let nodeId = 0;
+let edgeId = 0;
+let funcId = 0;
+let history = [];
+let future = [];
+
+let simRunning = false;
+let simCycle = 0;
+let simSpeed = 1;
+let cycleStartBalances = {}; // snapshot of balances at cycle start
+let cycleDeducted = {};      // total deducted from each node so far this cycle
+
+// ─── Chart history ────────────────────────────────────────────────────────────
+const CHART_WINDOW = 150;   // points shown in "window" mode
+const CHART_MAX    = 10000; // hard cap for full history
+let nodeBalanceHistory = {};   // nodeId -> [balance, ...]
+let realEconomyHistory = [];
+let productionHistory  = [];
+let chartModes = { balances: 'window', economy: 'window' };
+let simInterval = null;
+let initialState = null; // snapshot before first run
+
+// Pan/zoom
+let panX = 0, panY = 0, zoom = 1;
+let isPanning = false, panStart = null;
+let spaceDown = false;
+
+// Drag node
+let draggingNode = null, dragOffset = {x:0, y:0};
+
+// Edge drawing
+let drawingEdge = null;
+
+// Selection
+let selectedNodeId = null;
+let selectedFuncId = null;
+
+// Context menu
+let ctxNodeId = null;
+
+// Function edit
+let editingNodeId = null;
+let editingFuncId = null;
+
+const svg = document.getElementById('canvas-svg');
+const nodesLayer = document.getElementById('nodes-layer');
+const edgesLayer = document.getElementById('edges-layer');
+const previewEdge = document.getElementById('preview-edge');
+const tooltip = document.getElementById('tooltip');
+const funcSelector = document.getElementById('func-selector');
+const funcEditDialog = document.getElementById('func-edit-dialog');
+
+// ─── Node creation ────────────────────────────────────────────────────────────
+function createNode(type='enterprise', x=200, y=200) {
+  const id = ++nodeId;
+  const label = TYPE_LABEL[type] || 'Новый блок';
+  const node = {
+    id, type, x, y,
+    label: label + ' ' + id,
+    balance: 1000000,
+    functions: [],
+  };
+
+  if (type === 'enterprise') {
+    const fi = createFunction('trade_in', id);
+    fi.name = 'Торговля вход';
+    node.functions.push(fi);
+    const fo = createFunction('trade_out', id);
+    fo.name = 'Торговля выход';
+    node.functions.push(fo);
+  } else if (type === 'bank') {
+    node.functions.push(createFunction('credit_bank', id));
+    node.functions.push(createFunction('credit_bank', id));
+  } else {
+    const inFunc = createFunction('receive_in', id);
+    inFunc.name = 'Вход';
+    node.functions.push(inFunc);
+    const outFunc = createFunction('send_out', id);
+    outFunc.name = 'Выход';
+    node.functions.push(outFunc);
+  }
+
+  return node;
+}
+
+function addNode(type='enterprise') {
+  pushHistory();
+  const cx = (svg.clientWidth/2 - panX) / zoom;
+  const cy = (svg.clientHeight/2 - panY) / zoom;
+  const node = createNode(type, cx - NODE_W/2 + Math.random()*40-20, cy - 80 + Math.random()*40-20);
+  nodes.push(node);
+  renderNode(node);
+  recalc();
+  return node;
+}
+
+function nodeHeight(node) {
+  const funcsH = node.functions.reduce((s, f) => s + funcRowHeight(f), 0);
+  return HEADER_H + BALANCE_H + funcsH + ROW_H + 8;
+}
+
+// ─── Function creation ─────────────────────────────────────────────────────────
+function createFunction(type, nodeId) {
+  const id = ++funcId;
+  const base = {
+    id, type, nodeId,
+    name: FUNC_TYPES[type]?.name || 'Функция',
+  };
+
+  switch(type) {
+    case 'lend_out':
+      return {...base, amount: 120000, rate: 10, term: 12, frequency: 24, lastIssue: -1000, monthsToNext: 0};
+    case 'repay_out':
+      return {...base, payment: 0, remaining: 0, active: false};
+    case 'trade_out':
+      return {...base, minAmount: 50000, maxAmount: 150000};
+    case 'trade_in':
+      return {...base, cycleIncome: 0, totalIncome: 0};
+    case 'send_out':
+      return {...base, amount: 0, duration: -1, remaining: -1}; // -1 = infinite
+    case 'receive_in':
+      return {...base, cycleIncome: 0, totalIncome: 0};
+    case 'credit_bank':
+      return {...base, amount: 120000, rate: 10, term: 12, frequency: 24,
+              monthsToNext: 1, lastIssue: -1000, cycleIncome: 0, totalIncome: 0};
+    case 'credit_node':
+      return {...base, cycleReceived: 0, totalReceived: 0,
+              payment: 0, remaining: 0, active: false};
+    case 'production':
+      return {...base, monthlyProduction: 1000000, produceByBalance: true, cycleProduced: 0, totalProduced: 0};
+    default:
+      return base;
+  }
+}
+
+// ─── Render Node ─────────────────────────────────────────────────────────────
+function renderNode(node) {
+  let g = document.getElementById('node-' + node.id);
+  if (g) g.remove();
+
+  const h = nodeHeight(node);
+  const bankrupt = !!node.bankrupt;
+  const color  = bankrupt ? '#1f0808' : (TYPE_COLORS[node.type]  || '#0d3b5a');
+  const accent = bankrupt ? '#f87171' : (TYPE_ACCENT[node.type] || '#60a5fa');
+
+  g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.id = 'node-' + node.id;
+  g.setAttribute('class', 'node-group' + (selectedNodeId===node.id?' node-selected':''));
+  g.setAttribute('transform', `translate(${node.x},${node.y})`);
+  // Stop bubbling so the SVG background handler doesn't deselect this node
+  g.addEventListener('mousedown', (e) => { e.stopPropagation(); selectNode(node.id); });
+
+  // Body
+  const body = svgEl('rect', {class:'node-body', x:0, y:0, width:NODE_W, height:h, rx:8, ry:8, fill:color, stroke:accent, 'stroke-width':'0.8', 'stroke-opacity':'0.6'});
+  g.appendChild(body);
+
+  // Header
+  const hdr = svgEl('rect', {x:0, y:0, width:NODE_W, height:HEADER_H, rx:8, ry:8, fill:'rgba(0,0,0,0.35)'});
+  g.appendChild(hdr);
+  const hdr2 = svgEl('rect', {x:0, y:16, width:NODE_W, height:12, fill:'rgba(0,0,0,0.35)'});
+  g.appendChild(hdr2);
+
+  // Color accent bar
+  const bar = svgEl('rect', {x:0, y:0, width:4, height:h, rx:2, fill:accent, opacity:'0.8'});
+  g.appendChild(bar);
+
+  // Title
+  const titleEl = svgEl('text', {class:'node-title', x:12, y:HEADER_H/2, 'dominant-baseline':'central'});
+  titleEl.textContent = node.label.length > 26 ? node.label.slice(0,25)+'…' : node.label;
+  g.appendChild(titleEl);
+
+  // Type badge
+  const badge = svgEl('text', {x:NODE_W-8, y:HEADER_H/2, 'text-anchor':'end', 'dominant-baseline':'central', fill:accent, 'font-size':'9', opacity:'0.7'});
+  badge.textContent = bankrupt ? 'БАНКРОТ' : (node.type||'').toUpperCase();
+  g.appendChild(badge);
+
+  // Bankrupt overlay stripe
+  if (bankrupt) {
+    const stripe = svgEl('rect', {x:0, y:0, width:NODE_W, height:h, rx:8, fill:'rgba(220,30,30,0.06)', 'pointer-events':'none'});
+    g.appendChild(stripe);
+    const bankLabel = svgEl('text', {
+      x: NODE_W/2, y: h/2,
+      'text-anchor': 'middle', 'dominant-baseline': 'central',
+      fill: 'rgba(248,113,113,0.18)', 'font-size': '36', 'font-weight': '900',
+      'pointer-events': 'none', transform: `rotate(-30, ${NODE_W/2}, ${h/2})`
+    });
+    bankLabel.textContent = 'БАНКРОТ';
+    g.appendChild(bankLabel);
+  }
+
+  let rowY = HEADER_H;
+
+  // Balance row
+  {
+    const balanceRect = svgEl('rect', {class:'balance-row', x:4, y:rowY+2, width:NODE_W-8, height:BALANCE_H-4, rx:4, 'stroke-width':'0.5'});
+    g.appendChild(balanceRect);
+    const lbl = svgEl('text', {class:'balance-label', x:12, y:rowY+BALANCE_H/2, 'dominant-baseline':'central'});
+    lbl.textContent = 'Баланс';
+    g.appendChild(lbl);
+    const val = svgEl('text', {class:`balance-value`, x:NODE_W-8, y:rowY+BALANCE_H/2, 'text-anchor':'end', 'dominant-baseline':'central', id:`node-${node.id}-balance`});
+    val.textContent = formatNum(node.balance);
+    val.style.cursor = 'pointer';
+    val.addEventListener('click', (e) => { e.stopPropagation(); editBalance(node, val); });
+    g.appendChild(val);
+    rowY += BALANCE_H;
+  }
+
+  // Function rows
+  let currentRowY = rowY;
+  node.functions.forEach((func) => {
+    const slotH = funcRowHeight(func);
+    const drawY = currentRowY + FUNC_GAP; // leave gap at top of each slot
+    if (isDual(func)) {
+      renderDualFuncBlock(g, node, func, drawY);
+    } else if (FUNC_TYPES[func.type]?.type === 'info') {
+      renderInfoFuncRow(g, node, func, drawY);
+    } else {
+      renderSingleFuncRow(g, node, func, drawY);
+    }
+    currentRowY += slotH;
+  });
+
+  // Add function button
+  const addBtn = svgEl('rect', {
+    class:'add-func-btn', x:4, y:currentRowY+2, width:NODE_W-8, height:ROW_H-4, rx:3,
+    'stroke-width':'0.5', 'stroke-dasharray':'3 3'
+  });
+  addBtn.style.cursor = 'pointer';
+  addBtn.addEventListener('click', (e) => { e.stopPropagation(); showFuncSelector(node.id, e); });
+  g.appendChild(addBtn);
+
+  const addText = svgEl('text', {class:'add-func-text', x:NODE_W/2, y:currentRowY+ROW_H/2});
+  addText.textContent = '+ Добавить функцию';
+  addText.addEventListener('click', (e) => { e.stopPropagation(); showFuncSelector(node.id, e); });
+  g.appendChild(addText);
+
+  // Drag header
+  const dragZone = svgEl('rect', {x:4, y:0, width:NODE_W-8, height:HEADER_H, fill:'transparent', cursor:'move'});
+  dragZone.addEventListener('mousedown', (e) => onNodeMouseDown(e, node.id));
+  dragZone.addEventListener('dblclick', (e) => startRenameNode(e, node.id));
+  g.appendChild(dragZone);
+
+  // Right click
+  g.addEventListener('contextmenu', (e) => { e.preventDefault(); showCtxMenu(e, node.id); });
+
+  nodesLayer.appendChild(g);
+}
+
+function renderSingleFuncRow(g, node, func, y) {
+  const isOut = FUNC_TYPES[func.type]?.type === 'out';
+  const funcRect = svgEl('rect', {
+    class: isOut ? 'func-row-out' : 'func-row-in',
+    x:4, y:y+1, width:NODE_W-8, height:ROW_H-2, rx:3, 'stroke-width':'0.5'
+  });
+  g.appendChild(funcRect);
+  const makePort = (cx) => svgEl('circle', {
+    class:'port', cx, cy:y+ROW_H/2, r:4,
+    fill: isOut ? '#1a0a00' : '#052e16',
+    stroke: isOut ? '#f97316' : '#4ade80', 'stroke-width':'1.5'
+  });
+  const portL = makePort(0), portR = makePort(NODE_W);
+  if (isOut) {
+    portL.addEventListener('mousedown', (e) => { e.stopPropagation(); onPortMouseDown(e, node.id, func.id, 'left'); });
+    portR.addEventListener('mousedown', (e) => { e.stopPropagation(); onPortMouseDown(e, node.id, func.id, 'right'); });
+  } else {
+    portL.addEventListener('mouseup', (e) => { e.stopPropagation(); onPortMouseUp(e, node.id, func.id, 'left'); });
+    portR.addEventListener('mouseup', (e) => { e.stopPropagation(); onPortMouseUp(e, node.id, func.id, 'right'); });
+  }
+  g.appendChild(portL); g.appendChild(portR);
+  const lbl = svgEl('text', {class:'func-label', x:12, y:y+ROW_H/2-4, 'dominant-baseline':'central'});
+  lbl.textContent = func.name; lbl.style.cursor = 'pointer';
+  lbl.addEventListener('click', (e) => { e.stopPropagation(); editFunction(func); });
+  g.appendChild(lbl);
+  const val = svgEl('text', {class:'func-value', x:NODE_W-8, y:y+ROW_H/2+4, 'text-anchor':'end', 'dominant-baseline':'central'});
+  val.textContent = getFuncDisplayText(func);
+  g.appendChild(val);
+}
+
+function renderInfoFuncRow(g, node, func, y) {
+  const bg = svgEl('rect', {
+    x:4, y:y+1, width:NODE_W-8, height:ROW_H-2, rx:3,
+    fill:'rgba(74,222,128,0.08)', stroke:'rgba(74,222,128,0.25)', 'stroke-width':'0.5'
+  });
+  g.appendChild(bg);
+
+  // Factory icon
+  const icon = svgEl('text', {x:10, y:y+ROW_H/2, 'dominant-baseline':'central', 'font-size':'10', fill:'#4ade80', opacity:'0.8'});
+  icon.textContent = '⚙';
+  g.appendChild(icon);
+
+  const lbl = svgEl('text', {class:'func-label', x:22, y:y+ROW_H/2-4, 'dominant-baseline':'central'});
+  lbl.textContent = func.name;
+  lbl.style.cursor = 'pointer';
+  lbl.addEventListener('click', (e) => { e.stopPropagation(); editFunction(func); });
+  g.appendChild(lbl);
+
+  const val = svgEl('text', {class:'func-value', x:NODE_W-8, y:y+ROW_H/2+4, 'text-anchor':'end', 'dominant-baseline':'central', fill:'#4ade80'});
+  val.textContent = getFuncDisplayText(func);
+  g.appendChild(val);
+}
+
+function renderDualFuncBlock(g, node, func, y) {
+  const topIsOut  = FUNC_TYPES[func.type]?.topIsOut;
+  const totalH    = DUAL_TAB_H + 2 * ROW_H;
+  const GOLD      = 'rgba(255,215,0,';
+
+  // ── Outer frame ──────────────────────────────────────────────────────────
+  const frame = svgEl('rect', {
+    x:2, y, width:NODE_W-4, height:totalH, rx:5,
+    fill:`${GOLD}0.05)`, stroke:`${GOLD}0.55)`, 'stroke-width':'1.2'
+  });
+  g.appendChild(frame);
+
+  // ── Left accent bar ───────────────────────────────────────────────────────
+  const bar = svgEl('rect', {
+    x:2, y, width:4, height:totalH, rx:2,
+    fill:`${GOLD}0.7)`, 'pointer-events':'none'
+  });
+  g.appendChild(bar);
+
+  // ── Name tab header ───────────────────────────────────────────────────────
+  const tab = svgEl('rect', {
+    x:2, y, width:NODE_W-4, height:DUAL_TAB_H, rx:5,
+    fill:`${GOLD}0.13)`, 'pointer-events':'none'
+  });
+  g.appendChild(tab);
+  // square off the bottom corners of the tab
+  const tabFill = svgEl('rect', {
+    x:2, y:y+DUAL_TAB_H/2, width:NODE_W-4, height:DUAL_TAB_H/2,
+    fill:`${GOLD}0.13)`, 'pointer-events':'none'
+  });
+  g.appendChild(tabFill);
+
+  const nameLbl = svgEl('text', {
+    x:NODE_W/2, y:y+DUAL_TAB_H/2+1,
+    'text-anchor':'middle', 'dominant-baseline':'central',
+    fill:`${GOLD}0.9)`, 'font-size':'9', 'font-weight':'700',
+    'letter-spacing':'.1em', 'pointer-events':'none'
+  });
+  nameLbl.textContent = func.name.toUpperCase();
+  g.appendChild(nameLbl);
+  // click on tab = edit function
+  const tabHit = svgEl('rect', {x:6, y, width:NODE_W-12, height:DUAL_TAB_H, fill:'transparent', cursor:'pointer'});
+  tabHit.addEventListener('click', (e) => { e.stopPropagation(); editFunction(func); });
+  g.appendChild(tabHit);
+
+  // ── Sub-rows ──────────────────────────────────────────────────────────────
+  const topLabel    = func.type === 'credit_bank' ? 'Выдача'  : 'Получено';
+  const bottomLabel = func.type === 'credit_bank' ? 'Возврат' : 'Платёж';
+  const topVal    = func.type === 'credit_bank'
+    ? `${formatNum(func.amount)} · ${func.rate}% · ${func.term}мес`
+    : `+${formatNum(func.cycleReceived||0)} (∑${formatNum(func.totalReceived||0)})`;
+  const bottomVal = func.type === 'credit_bank'
+    ? `+${formatNum(func.cycleIncome)} (∑${formatNum(func.totalIncome)})`
+    : func.active ? `${formatNum(func.payment)}/мес · ост.${func.remaining}` : 'ожидание';
+
+  [
+    { rowY: y + DUAL_TAB_H,          isOut: topIsOut,  portRow:'top',    label:topLabel,    val:topVal    },
+    { rowY: y + DUAL_TAB_H + ROW_H,  isOut: !topIsOut, portRow:'bottom', label:bottomLabel, val:bottomVal },
+  ].forEach(({ rowY, isOut, portRow, label, val }) => {
+
+    // row bg (indented to leave room for left accent bar)
+    const bg = svgEl('rect', {
+      class: isOut ? 'func-row-out' : 'func-row-in',
+      x:8, y:rowY+2, width:NODE_W-16, height:ROW_H-4, rx:3, 'stroke-width':'0.5'
+    });
+    g.appendChild(bg);
+
+    // separator line between the two rows
+    if (portRow === 'bottom') {
+      const sep = svgEl('line', {
+        x1:8, y1:rowY, x2:NODE_W-8, y2:rowY,
+        stroke:`${GOLD}0.2)`, 'stroke-width':'0.5'
+      });
+      g.appendChild(sep);
+    }
+
+    // ports
+    const makePort = (cx) => svgEl('circle', {
+      class:'port', cx, cy:rowY+ROW_H/2, r:4,
+      fill: isOut ? '#1a0a00' : '#052e16',
+      stroke: isOut ? '#f97316' : '#4ade80', 'stroke-width':'1.5'
+    });
+    const portL = makePort(0), portR = makePort(NODE_W);
+    if (isOut) {
+      portL.addEventListener('mousedown', (e) => { e.stopPropagation(); onPortMouseDown(e, node.id, func.id, 'left',  portRow); });
+      portR.addEventListener('mousedown', (e) => { e.stopPropagation(); onPortMouseDown(e, node.id, func.id, 'right', portRow); });
+    } else {
+      portL.addEventListener('mouseup', (e) => { e.stopPropagation(); onPortMouseUp(e, node.id, func.id, 'left',  portRow); });
+      portR.addEventListener('mouseup', (e) => { e.stopPropagation(); onPortMouseUp(e, node.id, func.id, 'right', portRow); });
+    }
+    g.appendChild(portL); g.appendChild(portR);
+
+    const lbl = svgEl('text', {class:'func-label', x:14, y:rowY+ROW_H/2-4, 'dominant-baseline':'central'});
+    lbl.textContent = label;
+    g.appendChild(lbl);
+
+    const valEl = svgEl('text', {class:'func-value', x:NODE_W-8, y:rowY+ROW_H/2+4, 'text-anchor':'end', 'dominant-baseline':'central'});
+    valEl.textContent = val;
+    g.appendChild(valEl);
+  });
+}
+
+function getFuncDisplayText(func) {
+  switch(func.type) {
+    case 'lend_out':
+      return `${formatNum(func.amount)} под ${func.rate}%`;
+    case 'repay_out':
+      return func.active ? `${formatNum(func.payment)}/мес (${func.remaining})` : 'не активен';
+    case 'trade_out':
+      return `${formatNum(func.minAmount)}-${formatNum(func.maxAmount)}`;
+    case 'trade_in':
+      return `+${formatNum(func.cycleIncome)} (∑${formatNum(func.totalIncome)})`;
+    case 'send_out':
+      return `${formatNum(func.amount)}/мес ${func.duration===-1?'∞':func.remaining}`;
+    case 'receive_in':
+      return `+${formatNum(func.cycleIncome)} (∑${formatNum(func.totalIncome)})`;
+    case 'production':
+      return `${formatNum(func.cycleProduced)} ед. (∑${formatNum(func.totalProduced)})`;
+    default:
+      return '';
+  }
+}
+
+function renderAllNodes() {
+  nodesLayer.innerHTML = '';
+  nodes.forEach(renderNode);
+}
+
+// ─── SVG helpers ─────────────────────────────────────────────────────────────
+function svgEl(tag, attrs={}) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const [k,v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+
+function formatNum(n) {
+  if (n === undefined || n === null) return '0';
+  return Math.round(n).toLocaleString('ru-RU');
+}
+
+// ─── Edges ────────────────────────────────────────────────────────────────────
+function renderEdges() {
+  edgesLayer.innerHTML = '';
+  edges.forEach(renderEdge);
+}
+
+function renderEdge(edge) {
+  const fromNode = nodes.find(n=>n.id===edge.from);
+  const toNode = nodes.find(n=>n.id===edge.to);
+  if (!fromNode || !toNode) return;
+
+  const fromSide = edge.fromSide || 'right';
+  const toSide   = edge.toSide   || 'left';
+  const p1 = getPortPos(fromNode, edge.fromFunc, fromSide, edge.fromRow);
+  const p2 = getPortPos(toNode,   edge.toFunc,   toSide,   edge.toRow);
+
+  // Control-point offset: exit in the direction of the port, enter from the direction of the port
+  const dx = Math.max(60, Math.abs(p2.x - p1.x) * 0.5);
+  const c1x = p1.x + (fromSide === 'right' ?  dx : -dx);
+  const c2x = p2.x + (toSide   === 'right' ?  dx : -dx);
+  const d = `M${p1.x},${p1.y} C${c1x},${p1.y} ${c2x},${p2.y} ${p2.x},${p2.y}`;
+
+  // Create path with multiple arrow markers
+  const pathLength = Math.sqrt((p2.x-p1.x)**2 + (p2.y-p1.y)**2);
+  const markerCount = Math.max(2, Math.floor(pathLength / 60));
+  let markerPositions = '';
+  for (let i = 1; i <= markerCount; i++) {
+    const pos = (i / (markerCount + 1)) * 100;
+    markerPositions += `${pos}% `;
+  }
+
+  const path = svgEl('path', {
+    id: 'edge-'+edge.id,
+    class: 'edge-path',
+    d, 
+    stroke: '#f97316',
+    'stroke-opacity': '0.8',
+    'marker-end': 'url(#arrowhead-end)',
+  });
+  
+  // Add multiple markers along the path
+  if (pathLength > 80) {
+    path.setAttribute('marker-mid', 'url(#arrowhead-mid)');
+  }
+  
+  path.addEventListener('contextmenu', (e) => { e.preventDefault(); deleteEdge(edge.id); });
+  path.style.cursor = 'pointer';
+  edgesLayer.appendChild(path);
+}
+
+function getPortPos(node, funcId, side, row) {
+  const func = node.functions.find(f => f.id === funcId);
+  if (!func) return {x: node.x, y: node.y};
+
+  const funcIndex = node.functions.indexOf(func);
+  const baseY = getFuncBaseY(node, funcIndex);
+  const localY = isDual(func)
+    ? FUNC_GAP + DUAL_TAB_H + (row === 'bottom' ? ROW_H : 0) + ROW_H/2
+    : FUNC_GAP + ROW_H/2;
+
+  return {
+    x: side === 'right' ? node.x + NODE_W : node.x,
+    y: node.y + baseY + localY
+  };
+}
+
+// ─── Function selector ────────────────────────────────────────────────────────
+function showFuncSelector(nodeId, event) {
+  selectedNodeId = nodeId;
+  const rect = event.target.getBoundingClientRect();
+  funcSelector.style.display = 'block';
+  funcSelector.style.left = rect.right + 10 + 'px';
+  funcSelector.style.top = rect.top + 'px';
+}
+
+function selectFunction(type) {
+  const node = nodes.find(n => n.id === selectedNodeId);
+  if (!node) return;
+  
+  pushHistory();
+  const func = createFunction(type, selectedNodeId);
+  node.functions.push(func);
+  
+  funcSelector.style.display = 'none';
+  renderNode(node);
+  editFunction(func);
+}
+
+// ─── Function editing ─────────────────────────────────────────────────────────
+function editFunction(func) {
+  editingFuncId = func.id;
+  editingNodeId = func.nodeId;
+  
+  const dialog = document.getElementById('func-edit-dialog');
+  const title = document.getElementById('func-edit-title');
+  const form = document.getElementById('func-edit-form');
+  
+  title.textContent = `Настройка: ${func.name}`;
+  form.innerHTML = '';
+  
+  switch(func.type) {
+    case 'lend_out':
+      form.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">Сумма кредита</label>
+          <input type="number" class="form-input" id="field-amount" value="${func.amount}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ссудный процент (%)</label>
+          <input type="number" class="form-input" id="field-rate" value="${func.rate}" min="0" max="100">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Срок (месяцев)</label>
+          <input type="number" class="form-input" id="field-term" value="${func.term}" min="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Частота выдачи (месяцев)</label>
+          <input type="number" class="form-input" id="field-frequency" value="${func.frequency}" min="1">
+        </div>
+      `;
+      break;
+    case 'repay_out':
+      form.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">Сумма платежа</label>
+          <input type="number" class="form-input" id="field-payment" value="${func.payment}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Количество месяцев</label>
+          <input type="number" class="form-input" id="field-remaining" value="${func.remaining}" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">
+            <input type="checkbox" ${func.active?'checked':''}> Активен
+          </label>
+        </div>
+      `;
+      break;
+    case 'trade_out':
+      form.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">Минимальная сумма</label>
+          <input type="number" class="form-input" id="field-min" value="${func.minAmount}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Максимальная сумма</label>
+          <input type="number" class="form-input" id="field-max" value="${func.maxAmount}">
+        </div>
+      `;
+      break;
+    case 'send_out':
+      form.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">Сумма</label>
+          <input type="number" class="form-input" id="field-amount" value="${func.amount}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Длительность циклов</label>
+          <select class="form-select" id="field-duration">
+            <option value="-1" ${func.duration===-1?'selected':''}>Бесконечно</option>
+            <option value="1" ${func.duration===1?'selected':''}>1 месяц</option>
+            <option value="3" ${func.duration===3?'selected':''}>3 месяца</option>
+            <option value="6" ${func.duration===6?'selected':''}>6 месяцев</option>
+            <option value="12" ${func.duration===12?'selected':''}>12 месяцев</option>
+          </select>
+        </div>
+      `;
+      break;
+    case 'trade_in':
+    case 'receive_in':
+      form.innerHTML = `
+        <div class="form-group"><label class="form-label">Приход в цикле</label>
+          <input type="number" class="form-input" value="${func.cycleIncome}" readonly></div>
+        <div class="form-group"><label class="form-label">Общий доход</label>
+          <input type="number" class="form-input" value="${func.totalIncome}" readonly></div>`;
+      break;
+    case 'credit_bank':
+      form.innerHTML = `
+        <div class="form-group"><label class="form-label">Сумма кредита</label>
+          <input type="number" class="form-input" id="field-amount" value="${func.amount}"></div>
+        <div class="form-group"><label class="form-label">Процент годовых (%)</label>
+          <input type="number" class="form-input" id="field-rate" value="${func.rate}" min="0" max="100"></div>
+        <div class="form-group"><label class="form-label">Срок (месяцев)</label>
+          <input type="number" class="form-input" id="field-term" value="${func.term}" min="1"></div>
+        <div class="form-group"><label class="form-label">Частота выдачи (месяцев)</label>
+          <input type="number" class="form-input" id="field-frequency" value="${func.frequency}" min="1"></div>
+        <div class="form-group"><label class="form-label">Возвратов получено (∑)</label>
+          <input type="number" class="form-input" value="${formatNum(func.totalIncome)}" readonly></div>`;
+      break;
+    case 'credit_node':
+      form.innerHTML = `
+        <div class="form-group"><label class="form-label">Получено кредитов (∑)</label>
+          <input type="number" class="form-input" value="${formatNum(func.totalReceived||0)}" readonly></div>
+        <div class="form-group"><label class="form-label">Платёж / месяц</label>
+          <input type="number" class="form-input" value="${formatNum(func.payment)}" readonly></div>
+        <div class="form-group"><label class="form-label">Осталось месяцев</label>
+          <input type="number" class="form-input" value="${func.remaining}" readonly></div>
+        <div class="form-group"><label class="form-label">Статус</label>
+          <input type="text" class="form-input" value="${func.active ? 'Активен' : 'Ожидание кредита'}" readonly></div>`;
+      break;
+    case 'production':
+      form.innerHTML = `
+        <div class="form-group"><label class="form-label">Производство товаров в месяц</label>
+          <input type="number" class="form-input" id="field-monthly-production" value="${func.monthlyProduction}" min="0"
+            ${func.produceByBalance ? 'disabled style="opacity:0.4"' : ''}></div>
+        <div class="form-group"><label class="form-label" style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" id="field-produce-by-balance" ${func.produceByBalance ? 'checked' : ''}
+            onchange="document.getElementById('field-monthly-production').disabled=this.checked;
+                      document.getElementById('field-monthly-production').style.opacity=this.checked?'0.4':'1';">
+          Производить согласно балансу</label></div>
+        <div class="form-group"><label class="form-label">Произведено в этом цикле</label>
+          <input type="number" class="form-input" value="${func.cycleProduced}" readonly></div>
+        <div class="form-group"><label class="form-label">Произведено всего (∑)</label>
+          <input type="number" class="form-input" value="${func.totalProduced}" readonly></div>`;
+      break;
+  }
+  
+  dialog.style.display = 'block';
+  dialog.style.left = '50%';
+  dialog.style.top = '50%';
+  dialog.style.transform = 'translate(-50%, -50%)';
+}
+
+function saveFuncSettings() {
+  const func = findFunction(editingFuncId);
+  if (!func) return;
+  
+  switch(func.type) {
+    case 'lend_out':
+      func.amount = parseFloat(document.getElementById('field-amount').value) || func.amount;
+      func.rate = parseFloat(document.getElementById('field-rate').value) || func.rate;
+      func.term = parseInt(document.getElementById('field-term').value) || func.term;
+      func.frequency = parseInt(document.getElementById('field-frequency').value) || func.frequency;
+      break;
+    case 'repay_out':
+      func.payment = parseFloat(document.getElementById('field-payment').value) || func.payment;
+      func.remaining = parseInt(document.getElementById('field-remaining').value) || func.remaining;
+      func.active = document.querySelector('#func-edit-form input[type="checkbox"]').checked;
+      break;
+    case 'trade_out':
+      func.minAmount = parseFloat(document.getElementById('field-min').value) || func.minAmount;
+      func.maxAmount = parseFloat(document.getElementById('field-max').value) || func.maxAmount;
+      break;
+    case 'send_out':
+      func.amount = parseFloat(document.getElementById('field-amount').value) || func.amount;
+      const duration = parseInt(document.getElementById('field-duration').value);
+      func.duration = duration;
+      func.remaining = duration;
+      break;
+    case 'credit_bank':
+      func.amount    = parseFloat(document.getElementById('field-amount').value)    || func.amount;
+      func.rate      = parseFloat(document.getElementById('field-rate').value)      || func.rate;
+      func.term      = parseInt(document.getElementById('field-term').value)        || func.term;
+      func.frequency = parseInt(document.getElementById('field-frequency').value)   || func.frequency;
+      break;
+    case 'production':
+      func.produceByBalance  = document.getElementById('field-produce-by-balance').checked;
+      func.monthlyProduction = parseFloat(document.getElementById('field-monthly-production').value) || 0;
+      break;
+  }
+  
+  closeFuncDialog();
+  const node = nodes.find(n => n.id === editingNodeId);
+  if (node) renderNode(node);
+}
+
+function deleteFuncFromDialog() {
+  const node = nodes.find(n => n.id === editingNodeId);
+  if (!node) return;
+  
+  pushHistory();
+  node.functions = node.functions.filter(f => f.id !== editingFuncId);
+  
+  // Remove edges connected to this function
+  edges = edges.filter(e => e.fromFunc !== editingFuncId && e.toFunc !== editingFuncId);
+  
+  closeFuncDialog();
+  renderNode(node);
+  renderEdges();
+}
+
+function closeFuncDialog() {
+  document.getElementById('func-edit-dialog').style.display = 'none';
+  editingFuncId = null;
+  editingNodeId = null;
+}
+
+function findFunction(funcId) {
+  for (let node of nodes) {
+    const func = node.functions.find(f => f.id === funcId);
+    if (func) return func;
+  }
+  return null;
+}
+
+// ─── Balance editing ──────────────────────────────────────────────────────────
+function editBalance(node, el) {
+  const newBalance = prompt('Введите новый баланс:', node.balance);
+  if (newBalance !== null) {
+    const val = parseFloat(newBalance);
+    if (!isNaN(val)) {
+      pushHistory();
+      node.balance = val;
+      el.textContent = formatNum(val);
+      el.setAttribute('fill', val >= 0 ? '#60a5fa' : '#f87171');
+      recalc();
+    }
+  }
+}
+
+// ─── Simulation ───────────────────────────────────────────────────────────────
+function recalc() {
+  nodes.forEach(node => {
+    node.functions.forEach(func => {
+      if (func.type === 'trade_in' || func.type === 'receive_in') func.cycleIncome = 0;
+      if (func.type === 'credit_bank') func.cycleIncome = 0;
+      if (func.type === 'credit_node') func.cycleReceived = 0;
+      // production.cycleProduced is NOT reset here — it's set during processFunctionCycle
+      // and must survive until renderAllNodes displays it
+    });
+  });
+  
+  updateBalanceDisplay();
+  updateNodeValues();
+}
+
+function runSimulationCycle() {
+  simCycle++;
+  document.getElementById('cycle-num').textContent = simCycle;
+  logCycleStart(simCycle);
+
+  nodes.forEach(node => {
+    node.functions.forEach(func => {
+      if (func.type === 'trade_in' || func.type === 'receive_in') func.cycleIncome = 0;
+      if (func.type === 'credit_bank') func.cycleIncome = 0;
+      if (func.type === 'credit_node') func.cycleReceived = 0;
+      if (func.type === 'production') func.cycleProduced = 0;
+    });
+  });
+
+  // Snapshot balances before processing so order of node processing doesn't affect affordability
+  cycleStartBalances = {};
+  cycleDeducted = {};
+  nodes.forEach(node => {
+    cycleStartBalances[node.id] = node.balance;
+    cycleDeducted[node.id] = 0;
+  });
+
+  // Process each function
+  nodes.forEach(node => {
+    node.functions.forEach(func => {
+      processFunctionCycle(func, node);
+    });
+  });
+  
+  // Process money flows through edges
+  processEdgeFlows();
+  
+  recalc();
+  renderAllNodes();
+  recordHistory();
+  drawCharts();
+}
+
+function canAfford(node, amount) {
+  return (cycleStartBalances[node.id] ?? node.balance) - (cycleDeducted[node.id] ?? 0) >= amount;
+}
+
+function commitDeduct(node, amount) {
+  node.balance -= amount;
+  cycleDeducted[node.id] = (cycleDeducted[node.id] ?? 0) + amount;
+}
+
+function processFunctionCycle(func, node) {
+  if (node.bankrupt) return; // банкрот не совершает операций
+  switch(func.type) {
+    case 'lend_out':
+      func.monthsToNext--;
+      if (func.monthsToNext <= 0) {
+        if (canAfford(node, func.amount)) {
+          commitDeduct(node, func.amount);
+          if (!sendMoneyFromFunction(func, func.amount)) node.balance += func.amount; // рефанд если некому
+          else { func.monthsToNext = func.frequency; func.lastIssue = simCycle; }
+        } else {
+          logEvent(`⛔ ${node.label}: нет денег для выдачи займа — нужно ${formatNum(func.amount)} ₽, есть ${formatNum(node.balance)} ₽`, 'fail');
+        }
+      }
+      break;
+
+    case 'repay_out':
+      if (func.active && func.remaining > 0) {
+        if (canAfford(node, func.payment)) {
+          commitDeduct(node, func.payment);
+          if (!sendMoneyFromFunction(func, func.payment)) node.balance += func.payment;
+          else { func.remaining--; if (func.remaining <= 0) func.active = false; }
+        } else {
+          logEvent(`⛔ ${node.label}: нет денег для погашения — нужно ${formatNum(func.payment)} ₽, есть ${formatNum(node.balance)} ₽`, 'fail');
+        }
+      }
+      break;
+
+    case 'trade_out': {
+      const amount = func.minAmount + Math.random() * (func.maxAmount - func.minAmount);
+      if (canAfford(node, amount)) {
+        commitDeduct(node, amount);
+        if (!sendMoneyFromFunction(func, amount)) node.balance += amount;
+      } else {
+        logEvent(`⛔ ${node.label}: нет денег для торговли — нужно ${formatNum(amount)} ₽, есть ${formatNum(node.balance)} ₽`, 'fail');
+      }
+      break;
+    }
+
+    case 'send_out':
+      if (func.remaining !== 0) {
+        if (canAfford(node, func.amount)) {
+          commitDeduct(node, func.amount);
+          if (!sendMoneyFromFunction(func, func.amount)) node.balance += func.amount;
+          else if (func.remaining > 0) func.remaining--;
+        } else {
+          logEvent(`⛔ ${node.label}: нет денег для отправки — нужно ${formatNum(func.amount)} ₽, есть ${formatNum(node.balance)} ₽`, 'fail');
+        }
+      }
+      break;
+
+    case 'credit_bank':
+      func.monthsToNext--;
+      if (func.monthsToNext <= 0) {
+        func.monthsToNext = func.frequency; // сброс таймера в любом случае
+        // Есть ли живые заёмщики на выходе (top)?
+        const hasTargets = edges.some(e => e.fromFunc === func.id && e.fromRow === 'top');
+        if (hasTargets && canAfford(node, func.amount)) {
+          commitDeduct(node, func.amount);
+          sendMoneyFromFunction(func, func.amount, 'top');
+          activateBorrowerRepayment(func, func.amount);
+          func.lastIssue = simCycle;
+          logEvent(`🏦 ${node.label} выдал кредит ${formatNum(func.amount)} ₽ (${func.rate}% · ${func.term}мес)`, 'credit');
+        } else if (hasTargets && !canAfford(node, func.amount)) {
+          logEvent(`⛔ ${node.label}: нет денег для выдачи кредита — нужно ${formatNum(func.amount)} ₽, есть ${formatNum(node.balance)} ₽`, 'fail');
+        }
+      }
+      break;
+
+    case 'production': {
+      const produced = func.produceByBalance ? node.balance : (func.monthlyProduction || 0);
+      func.cycleProduced = produced;
+      func.totalProduced = (func.totalProduced || 0) + produced;
+      break;
+    }
+
+    case 'credit_node':
+      if (func.active && func.remaining > 0) {
+        if (canAfford(node, func.payment)) {
+          commitDeduct(node, func.payment);
+          if (!sendMoneyFromFunction(func, func.payment, 'bottom')) {
+            node.balance += func.payment; // банк недоступен — не теряем деньги
+          } else {
+            func.remaining--;
+            if (func.remaining <= 0) func.active = false;
+          }
+        } else {
+          declareBankruptcy(node, func);
+        }
+      }
+      break;
+  }
+}
+
+function activateBorrowerRepayment(creditBankFunc, loanAmount) {
+  edges
+    .filter(e => e.fromFunc === creditBankFunc.id && e.fromRow === 'top')
+    .forEach(edge => {
+      const borrowerNode = nodes.find(n => n.id === edge.to);
+      const borrowerFunc = borrowerNode?.functions.find(f => f.id === edge.toFunc);
+      if (borrowerFunc?.type === 'credit_node' && edge.toRow === 'top' && !borrowerNode.bankrupt) {
+        // Аннуитетный платёж
+        const r = creditBankFunc.rate / 100 / 12;
+        const n = creditBankFunc.term;
+        const payment = r === 0
+          ? loanAmount / n
+          : loanAmount * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
+        borrowerFunc.payment   = payment;
+        borrowerFunc.remaining = n;
+        borrowerFunc.active    = true;
+      }
+    });
+}
+
+function declareBankruptcy(node, creditNodeFunc) {
+  node.bankrupt = true;
+
+  // Всё оставшееся — банку через bottom-порт кредитной функции
+  if (node.balance > 0) {
+    sendMoneyFromFunction(creditNodeFunc, node.balance, 'bottom');
+    node.balance = 0;
+  }
+
+  // Останавливаем кредитный долг
+  creditNodeFunc.active    = false;
+  creditNodeFunc.remaining = 0;
+
+  // Отвязываем все рёбра этого узла — никаких новых операций ни в одну сторону
+  edges = edges.filter(e => e.from !== node.id && e.to !== node.id);
+  renderEdges();
+
+  logEvent(`💀 БАНКРОТ: ${node.label} — операции прекращены`, 'bankrupt');
+  notify(`${node.label}: БАНКРОТСТВО — все операции прекращены`);
+}
+
+// ─── Money flow animation ──────────────────────────────────────────────────────
+function animateMoneyFlow(edge, amount) {
+  const fromNode = nodes.find(n => n.id === edge.from);
+  const toNode   = nodes.find(n => n.id === edge.to);
+  if (!fromNode || !toNode) return;
+
+  const fromSide = edge.fromSide || 'right';
+  const toSide   = edge.toSide   || 'left';
+  const p1 = getPortPos(fromNode, edge.fromFunc, fromSide, edge.fromRow);
+  const p2 = getPortPos(toNode,   edge.toFunc,   toSide,   edge.toRow);
+  const dx = Math.max(60, Math.abs(p2.x - p1.x) * 0.5);
+  const c1x = p1.x + (fromSide === 'right' ?  dx : -dx);
+  const c2x = p2.x + (toSide   === 'right' ?  dx : -dx);
+
+  // Цвет точки по типу потока
+  const isCredit = edge.fromRow === 'top'    || edge.toRow === 'top';
+  const isRepay  = edge.fromRow === 'bottom' || edge.toRow === 'bottom';
+  const dotColor = isCredit ? '#fbbf24' : isRepay ? '#2dd4bf' : '#fb923c';
+  const dotR = amount > 50000 ? 5 : 3;
+
+  const dot = svgEl('circle', { r: dotR, fill: dotColor, opacity: '0.92' });
+  dot.style.pointerEvents = 'none';
+  edgesLayer.appendChild(dot);
+
+  const duration = Math.max(80, 700 / simSpeed);
+  const start = performance.now();
+
+  function cubic(t, a, b, c, d) {
+    const m = 1 - t;
+    return m*m*m*a + 3*m*m*t*b + 3*m*t*t*c + t*t*t*d;
+  }
+
+  function step(now) {
+    const t = Math.min(1, (now - start) / duration);
+    dot.setAttribute('cx', cubic(t, p1.x, c1x, c2x, p2.x));
+    dot.setAttribute('cy', cubic(t, p1.y, p1.y, p2.y, p2.y));
+    if (t < 1) requestAnimationFrame(step);
+    else dot.remove();
+  }
+  requestAnimationFrame(step);
+}
+
+// Возвращает true если деньги были отправлены хотя бы одному получателю
+function sendMoneyFromFunction(fromFunc, amount, row) {
+  const connectedEdges = edges.filter(e => {
+    if (e.fromFunc !== fromFunc.id) return false;
+    return row === undefined ? !e.fromRow : e.fromRow === row;
+  });
+  if (connectedEdges.length === 0) return false;
+  const amountPerEdge = amount / connectedEdges.length;
+  connectedEdges.forEach(edge => {
+    const toNode = nodes.find(n => n.id === edge.to);
+    const toFunc = toNode?.functions.find(f => f.id === edge.toFunc);
+    if (toNode && toFunc) {
+      const credited = receiveMoneyAtFunction(toFunc, toNode, amountPerEdge, edge.toRow);
+      if (credited) {
+        animateMoneyFlow(edge, amountPerEdge);
+        // Лог только при реальном зачислении
+        const fromNode = nodes.find(n => n.id === edge.from);
+        const isCredit = edge.fromRow === 'top';
+        const isRepay  = edge.fromRow === 'bottom' && fromFunc.type === 'credit_node';
+        const logType  = isCredit ? 'credit' : isRepay ? 'repay' : 'trade';
+        const prefix   = isCredit ? '💳' : isRepay ? '↩' : '↔';
+        logEvent(`${prefix} ${fromNode?.label} → ${toNode.label}: ${formatNum(amountPerEdge)} ₽`, logType);
+      }
+    }
+  });
+  return true;
+}
+
+// Returns true if money was actually credited, false if rejected (bankrupt / unhandled type)
+function receiveMoneyAtFunction(func, node, amount, row) {
+  if (node.bankrupt) return false; // банкрот ничего не принимает
+  switch(func.type) {
+    case 'trade_in':
+    case 'receive_in':
+      func.cycleIncome += amount; func.totalIncome += amount; node.balance += amount;
+      return true;
+    case 'credit_bank':
+      // row==='bottom': repayment incoming
+      func.cycleIncome += amount; func.totalIncome += amount; node.balance += amount;
+      return true;
+    case 'credit_node':
+      // row==='top': loan received
+      func.cycleReceived = (func.cycleReceived||0) + amount;
+      func.totalReceived = (func.totalReceived||0) + amount;
+      node.balance += amount;
+      return true;
+    default:
+      return false;
+  }
+}
+
+function processEdgeFlows() {
+  // This is now handled by sendMoneyFromFunction and receiveMoneyAtFunction
+}
+
+function updateNodeValues() {
+  nodes.forEach(node => {
+    const balanceEl = document.getElementById(`node-${node.id}-balance`);
+    if (balanceEl) {
+      balanceEl.textContent = formatNum(node.balance);
+      balanceEl.setAttribute('fill', node.balance >= 0 ? '#60a5fa' : '#f87171');
+    }
+  });
+}
+
+function updateBalanceDisplay() {
+  const total = nodes.reduce((sum, node) => sum + Math.max(0, node.balance), 0);
+  document.getElementById('total-balance').textContent = formatNum(total);
+
+  const realSector = nodes.filter(n => n.type !== 'bank').reduce((s, n) => s + n.balance, 0);
+  const bankSector = nodes.filter(n => n.type === 'bank').reduce((s, n) => s + n.balance, 0);
+  const totalProd  = nodes.reduce((s, n) =>
+    s + n.functions.filter(f => f.type === 'production').reduce((a, f) => a + (f.monthlyProduction || 0), 0), 0);
+
+  document.getElementById('stat-real').textContent = formatNum(realSector);
+  document.getElementById('stat-bank').textContent = formatNum(bankSector);
+  document.getElementById('stat-prod').textContent = formatNum(totalProd);
+
+  updateBlockInfo();
+}
+
+function toggleSim() {
+  simRunning = !simRunning;
+  const btn = document.getElementById('run-btn');
+  if (simRunning) {
+    // Save state before first run
+    initialState = JSON.stringify({ nodes, edges, nodeId, edgeId, funcId, simCycle });
+    btn.textContent = '⏸ Остановить';
+    btn.className = 'btn danger';
+    simCycle = 0;
+    runSimLoop();
+  } else {
+    btn.textContent = '▶ Запустить';
+    btn.className = 'btn success';
+    clearTimeout(simInterval);
+  }
+}
+
+function resetSim() {
+  if (!initialState) { notify('Сначала запустите симуляцию'); return; }
+  if (simRunning) {
+    simRunning = false;
+    clearTimeout(simInterval);
+    const btn = document.getElementById('run-btn');
+    btn.textContent = '▶ Запустить';
+    btn.className = 'btn success';
+  }
+  const state = JSON.parse(initialState);
+  nodes = state.nodes;
+  edges = state.edges;
+  nodeId = state.nodeId;
+  edgeId = state.edgeId;
+  funcId = state.funcId;
+  simCycle = state.simCycle;
+  document.getElementById('cycle-num').textContent = simCycle;
+  initialState = null; // allow re-save on next run
+  clearHistory();
+  renderAllNodes();
+  renderEdges();
+  recalc();
+  notify('Состояние сброшено к началу запуска');
+}
+
+function runSimLoop() {
+  if (!simRunning) return;
+  
+  runSimulationCycle();
+  
+  const interval = Math.max(100, 1000 / simSpeed);
+  simInterval = setTimeout(runSimLoop, interval);
+}
+
+function updateSpeed() {
+  const slider = document.getElementById('speed-slider');
+  simSpeed = parseFloat(slider.value);
+  document.getElementById('speed-label').textContent = simSpeed + 'x';
+}
+
+// ─── Port interaction ─────────────────────────────────────────────────────────
+function onPortMouseDown(e, nodeId, funcId, side, row) {
+  if (spaceDown) {
+    isPanning = true;
+    panStart = { x: e.clientX - panX, y: e.clientY - panY };
+    svg.style.cursor = 'grabbing';
+    e.preventDefault();
+    return;
+  }
+  e.preventDefault();
+  const node = nodes.find(n => n.id === nodeId);
+  const startPos = node ? getPortPos(node, funcId, side, row) : svgPoint(e);
+  drawingEdge = { from: nodeId, fromFunc: funcId, fromSide: side, fromRow: row, startPos };
+  previewEdge.style.display = '';
+  previewEdge.setAttribute('d', `M${startPos.x},${startPos.y} L${startPos.x},${startPos.y}`);
+}
+
+function onPortMouseUp(e, nodeId, funcId, side, row) {
+  if (!drawingEdge) return;
+  if (drawingEdge.from === nodeId) return;
+
+  const exists = edges.find(edge =>
+    edge.from === drawingEdge.from &&
+    edge.fromFunc === drawingEdge.fromFunc && edge.fromRow === drawingEdge.fromRow &&
+    edge.to === nodeId && edge.toFunc === funcId && edge.toRow === row
+  );
+  if (exists) { cancelDrawEdge(); return; }
+
+  pushHistory();
+  edges.push({
+    id: ++edgeId,
+    from: drawingEdge.from,
+    fromFunc: drawingEdge.fromFunc,
+    fromSide: drawingEdge.fromSide,
+    fromRow: drawingEdge.fromRow,
+    to: nodeId,
+    toFunc: funcId,
+    toSide: side,
+    toRow: row
+  });
+
+  cancelDrawEdge();
+  renderEdges();
+}
+
+function cancelDrawEdge() {
+  drawingEdge = null;
+  previewEdge.style.display = 'none';
+  previewEdge.setAttribute('d', '');
+}
+
+// ─── Node drag ────────────────────────────────────────────────────────────────
+function onNodeMouseDown(e, nodeId) {
+  e.stopPropagation();
+  if (spaceDown) {
+    isPanning = true;
+    panStart = { x: e.clientX - panX, y: e.clientY - panY };
+    svg.style.cursor = 'grabbing';
+    e.preventDefault();
+    return;
+  }
+  selectNode(nodeId);
+  const node = nodes.find(n=>n.id===nodeId);
+  const pos = svgPoint(e);
+  draggingNode = nodeId;
+  dragOffset = { x: pos.x - node.x, y: pos.y - node.y };
+  const g = document.getElementById('node-'+nodeId);
+  nodesLayer.appendChild(g);
+}
+
+// ─── Block type dropdown ──────────────────────────────────────────────────────
+function toggleBlockMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('block-type-menu');
+  menu.classList.toggle('open');
+}
+function closeBlockMenu() {
+  document.getElementById('block-type-menu').classList.remove('open');
+}
+document.addEventListener('click', () => closeBlockMenu());
+
+// ─── Selection ────────────────────────────────────────────────────────────────
+function selectNode(id) {
+  if (selectedNodeId) {
+    const g = document.getElementById('node-'+selectedNodeId);
+    if (g) g.setAttribute('class', 'node-group');
+  }
+  selectedNodeId = id;
+  if (id) {
+    const g = document.getElementById('node-'+id);
+    if (g) g.setAttribute('class', 'node-group node-selected');
+  }
+  renderBlockInfo(nodes.find(n => n.id === id) || null);
+}
+
+// ─── Block info panel ─────────────────────────────────────────────────────────
+const FUNC_TYPE_LABELS = {
+  lend_out:    'Выдача займа',
+  repay_out:   'Погашение займа',
+  trade_out:   'Торговля (выход)',
+  trade_in:    'Торговля (вход)',
+  send_out:    'Отправление',
+  receive_in:  'Прием',
+  credit_bank: 'Кредитование',
+  credit_node: 'Кредит',
+  production:  'Производство',
+};
+
+let _blockInfoRenderedId = null; // tracks which node is currently rendered
+
+// Full rebuild — called when selected node changes
+function renderBlockInfo(node) {
+  _blockInfoRenderedId = node ? node.id : null;
+  const empty   = document.getElementById('block-info-empty');
+  const content = document.getElementById('block-info-content');
+  if (!node) {
+    empty.style.display = '';
+    content.style.display = 'none';
+    content.innerHTML = '';
+    return;
+  }
+  empty.style.display = 'none';
+  content.style.display = 'block';
+
+  const accent   = TYPE_ACCENT[node.type] || '#94a3b8';
+  const typeName = TYPE_LABEL[node.type]  || node.type;
+
+  let funcsHtml = node.functions.map(f => {
+    const fname = FUNC_TYPE_LABELS[f.type] || f.type;
+    let detail = '';
+    if (f.type === 'trade_out')   detail = ` ${formatNum(f.minAmount)}–${formatNum(f.maxAmount)} ₽`;
+    if (f.type === 'lend_out' || f.type === 'send_out') detail = ` ${formatNum(f.amount)} ₽`;
+    if (f.type === 'credit_bank') detail = ` ${formatNum(f.amount)} ₽ · ${f.rate}% · ${f.term}мес`;
+    if (f.type === 'credit_node' && f.active) detail = ` ост. ${f.remaining} пл. · ${formatNum(f.payment)} ₽`;
+    if (f.type === 'production') detail = ` ${formatNum(f.cycleProduced)} ед./цикл`;
+    return `<div class="bi-func-row">${fname}${detail}</div>`;
+  }).join('');
+
+  // Editable credit_bank controls (for bank nodes)
+  let creditControlsHtml = '';
+  if (node.type === 'bank') {
+    const creditFuncs = node.functions.filter(f => f.type === 'credit_bank');
+    if (creditFuncs.length) {
+      creditControlsHtml = creditFuncs.map((f, i) => `
+        <div class="bi-credit-block">
+          <div class="bi-credit-title">Кредитование ${creditFuncs.length > 1 ? '#' + (i+1) : ''}</div>
+          <div class="bi-credit-row">
+            <span class="bi-credit-label">Ставка</span>
+            <div style="display:flex;align-items:center;gap:4px">
+              <input class="bi-credit-input" type="number" min="0" max="100" step="0.1"
+                value="${f.rate}"
+                onchange="setCreditField(${f.id}, 'rate', parseFloat(this.value))"
+                onclick="this.select()">
+              <span class="bi-credit-unit">% год.</span>
+            </div>
+          </div>
+          <div class="bi-credit-row">
+            <span class="bi-credit-label">Частота выдачи</span>
+            <div style="display:flex;align-items:center;gap:4px">
+              <span class="bi-credit-label">каждые</span>
+              <input class="bi-credit-input" type="number" min="1" step="1"
+                value="${f.frequency}"
+                onchange="setCreditField(${f.id}, 'frequency', parseInt(this.value))"
+                onclick="this.select()">
+              <span class="bi-credit-unit">мес.</span>
+            </div>
+          </div>
+          <div class="bi-credit-row">
+            <span class="bi-credit-label">Получено возвратов</span>
+            <span class="bi-credit-stat bi-dyn" id="bi-credit-income-${f.id}">
+              +${formatNum(f.cycleIncome)} (∑${formatNum(f.totalIncome)})
+            </span>
+          </div>
+        </div>`).join('');
+    }
+  }
+
+  content.innerHTML = `
+    <div class="bi-name">${node.label}</div>
+    <div><span class="bi-type-badge" style="background:${accent}22;color:${accent};border:1px solid ${accent}44">${typeName}</span>${node.bankrupt ? ' <span class="bi-type-badge" style="background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3)">БАНКРОТ</span>' : ''}</div>
+    <div class="bi-row"><span class="bi-row-label">Баланс</span><span class="bi-row-value bi-dyn" id="bi-dyn-balance"></span></div>
+    <div class="bi-row"><span class="bi-row-label">Доля денег</span><span class="bi-row-value green bi-dyn" id="bi-dyn-pct"></span></div>
+    <div class="bi-row"><span class="bi-row-label">Связей вход / выход</span><span class="bi-row-value bi-dyn" id="bi-dyn-conn"></span></div>
+    <div class="bi-row"><span class="bi-row-label">Функций</span><span class="bi-row-value">${node.functions.length}</span></div>
+    <div class="bi-funcs">${funcsHtml}</div>
+    ${creditControlsHtml}
+  `;
+
+  // fill dynamic values immediately
+  refreshBlockInfoDynamic(node);
+}
+
+// Lightweight refresh — only updates numeric displays, never touches inputs
+function refreshBlockInfoDynamic(node) {
+  if (!node) return;
+  const totalMoney = nodes.reduce((s, n) => s + n.balance, 0);
+  const pct      = totalMoney !== 0 ? ((node.balance / totalMoney) * 100).toFixed(1) : '—';
+  const connIn   = edges.filter(e => e.to   === node.id).length;
+  const connOut  = edges.filter(e => e.from === node.id).length;
+  const balClass = node.balance < 0 ? 'red' : node.balance > 0 ? 'accent' : '';
+
+  const elBal  = document.getElementById('bi-dyn-balance');
+  const elPct  = document.getElementById('bi-dyn-pct');
+  const elConn = document.getElementById('bi-dyn-conn');
+  if (elBal)  { elBal.textContent = formatNum(node.balance) + ' ₽'; elBal.className = `bi-row-value bi-dyn ${balClass}`; }
+  if (elPct)  elPct.textContent  = pct + '%';
+  if (elConn) elConn.textContent = `${connIn} / ${connOut}`;
+
+  // Update credit income stats (read-only display, not inputs)
+  if (node.type === 'bank') {
+    node.functions.filter(f => f.type === 'credit_bank').forEach(f => {
+      const el = document.getElementById(`bi-credit-income-${f.id}`);
+      if (el) el.textContent = `+${formatNum(f.cycleIncome)} (∑${formatNum(f.totalIncome)})`;
+    });
+  }
+}
+
+// Called from simulation cycle — refresh without rebuild
+function updateBlockInfo() {
+  const node = nodes.find(n => n.id === selectedNodeId);
+  if (!node) {
+    if (_blockInfoRenderedId !== null) renderBlockInfo(null);
+    return;
+  }
+  if (_blockInfoRenderedId !== node.id) {
+    renderBlockInfo(node);
+  } else {
+    refreshBlockInfoDynamic(node);
+  }
+}
+
+// Direct field update from sidebar inputs
+function setCreditField(funcId, field, value) {
+  if (isNaN(value) || value <= 0) return;
+  const func = nodes.flatMap(n => n.functions).find(f => f.id === funcId);
+  if (func) func[field] = value;
+}
+
+// ─── Pan/zoom ─────────────────────────────────────────────────────────────────
+function svgPoint(e) {
+  const rect = svg.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left - panX) / zoom,
+    y: (e.clientY - rect.top - panY) / zoom,
+  };
+}
+
+function updateTransform() {
+  nodesLayer.setAttribute('transform', `translate(${panX},${panY}) scale(${zoom})`);
+  edgesLayer.setAttribute('transform', `translate(${panX},${panY}) scale(${zoom})`);
+  const gp = document.getElementById('grid-bg');
+  gp.setAttribute('x', -panX/zoom);
+  gp.setAttribute('y', -panY/zoom);
+  gp.setAttribute('width', svg.clientWidth/zoom + 100);
+  gp.setAttribute('height', svg.clientHeight/zoom + 100);
+}
+
+// ─── Global mouse events ──────────────────────────────────────────────────────
+svg.addEventListener('mousedown', (e) => {
+  if (e.button === 1 || (e.button === 0 && e.altKey) || e.button === 0) {
+    isPanning = true;
+    panStart = { x: e.clientX - panX, y: e.clientY - panY };
+    svg.style.cursor = 'grabbing';
+    selectNode(null);
+    closeCtxMenu();
+    funcSelector.style.display = 'none';
+    e.preventDefault();
+  }
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (isPanning) {
+    panX = e.clientX - panStart.x;
+    panY = e.clientY - panStart.y;
+    updateTransform();
+    return;
+  }
+  if (draggingNode) {
+    const node = nodes.find(n=>n.id===draggingNode);
+    if (!node) return;
+    const pos = svgPoint(e);
+    node.x = pos.x - dragOffset.x;
+    node.y = pos.y - dragOffset.y;
+    const g = document.getElementById('node-'+draggingNode);
+    if (g) g.setAttribute('transform', `translate(${node.x},${node.y})`);
+    updateEdgesForNode(draggingNode);
+    return;
+  }
+  if (drawingEdge) {
+    const pos = svgPoint(e);
+    const sp = drawingEdge.startPos || pos;
+    const dx = Math.max(60, Math.abs(pos.x - sp.x) * 0.5);
+    const c1x = sp.x + (drawingEdge.fromSide === 'right' ? dx : -dx);
+    previewEdge.setAttribute('d', `M${sp.x},${sp.y} C${c1x},${sp.y} ${pos.x},${pos.y} ${pos.x},${pos.y}`);
+  }
+});
+
+document.addEventListener('mouseup', (e) => {
+  isPanning = false;
+  draggingNode = null;
+  svg.style.cursor = spaceDown ? 'grab' : 'default';
+  if (drawingEdge) cancelDrawEdge();
+});
+
+svg.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const rect = svg.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const delta = e.deltaY < 0 ? 1.1 : 0.9;
+  panX = mx - (mx - panX) * delta;
+  panY = my - (my - panY) * delta;
+  zoom = Math.max(0.2, Math.min(3, zoom * delta));
+  updateTransform();
+}, { passive: false });
+
+// ─── Edge update on node move ─────────────────────────────────────────────────
+function updateEdgesForNode(nodeId) {
+  edges.forEach(edge => {
+    if (edge.from !== nodeId && edge.to !== nodeId) return;
+    renderEdges(); // Simple approach - re-render all edges
+  });
+}
+
+// ─── Delete edge ──────────────────────────────────────────────────────────────
+function deleteEdge(id) {
+  pushHistory();
+  edges = edges.filter(e => e.id !== id);
+  renderEdges();
+}
+
+// ─── Rename node ──────────────────────────────────────────────────────────────
+function startRenameNode(e, nodeId) {
+  const node = nodes.find(n => n.id === nodeId);
+  if (!node) return;
+  const newName = prompt('Имя блока:', node.label);
+  if (newName && newName.trim()) {
+    pushHistory();
+    node.label = newName.trim();
+    renderNode(node);
+  }
+}
+
+// ─── Context menu ─────────────────────────────────────────────────────────────
+function showCtxMenu(e, nodeId) {
+  ctxNodeId = nodeId;
+  const menu = document.getElementById('ctx-menu');
+  menu.style.display = 'block';
+  menu.style.left = e.clientX + 'px';
+  menu.style.top = e.clientY + 'px';
+  selectNode(nodeId);
+}
+
+function closeCtxMenu() {
+  document.getElementById('ctx-menu').style.display = 'none';
+  ctxNodeId = null;
+}
+
+document.getElementById('ctx-rename').onclick = () => {
+  if (!ctxNodeId) return;
+  closeCtxMenu();
+  startRenameNode({}, ctxNodeId);
+};
+
+document.getElementById('ctx-disconnect').onclick = () => {
+  if (!ctxNodeId) return;
+  disconnectNode(ctxNodeId);
+  closeCtxMenu();
+};
+
+document.getElementById('ctx-delete').onclick = () => {
+  if (!ctxNodeId) return;
+  deleteNode(ctxNodeId);
+  closeCtxMenu();
+};
+
+function disconnectNode(id) {
+  const node = nodes.find(n => n.id === id);
+  if (!node) return;
+  pushHistory();
+  // Remove all edges touching this node
+  edges = edges.filter(e => e.from !== id && e.to !== id);
+  node.functions.forEach(func => {
+    if (func.type === 'receive_in' || func.type === 'trade_in') {
+      func.cycleIncome = 0; func.totalIncome = 0;
+    }
+    if (func.type === 'credit_bank') {
+      func.cycleIncome = 0; func.totalIncome = 0;
+    }
+    if (func.type === 'credit_node') {
+      func.cycleReceived = 0; func.totalReceived = 0;
+      func.payment = 0; func.remaining = 0; func.active = false;
+    }
+  });
+  renderEdges();
+  renderNode(node);
+  recalc();
+  notify('Связи узла удалены');
+}
+
+function deleteNode(id) {
+  pushHistory();
+  if (selectedNodeId === id) { selectedNodeId = null; renderBlockInfo(null); }
+  nodes = nodes.filter(n => n.id !== id);
+  edges = edges.filter(e => e.from !== id && e.to !== id);
+  const g = document.getElementById('node-'+id);
+  if (g) g.remove();
+  recalc();
+  renderEdges();
+}
+
+// Close menus on outside click
+document.addEventListener('click', (e) => {
+  if (!document.getElementById('ctx-menu').contains(e.target)) closeCtxMenu();
+  if (!funcSelector.contains(e.target)) funcSelector.style.display = 'none';
+  if (!funcEditDialog.contains(e.target) && funcEditDialog.style.display === 'block') {
+    // Don't close dialog on outside click - only with buttons
+  }
+});
+
+// ─── Keyboard ─────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.key === ' ' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
+    if (!spaceDown) { spaceDown = true; svg.style.cursor = 'grab'; }
+    e.preventDefault();
+    return;
+  }
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (selectedNodeId) deleteNode(selectedNodeId);
+  }
+  if (e.key === 'n' || e.key === 'N') { const btn = document.querySelector('#topbar .btn'); btn && toggleBlockMenu({stopPropagation:()=>{}}); }
+  if (e.ctrlKey && e.key === 'z') undo();
+  if (e.ctrlKey && e.key === 'y') redo();
+  if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveFlow(); }
+  if (e.key === 'Escape') {
+    funcSelector.style.display = 'none';
+    closeFuncDialog();
+  }
+});
+
+document.addEventListener('keyup', (e) => {
+  if (e.key === ' ') {
+    spaceDown = false;
+    if (!isPanning) svg.style.cursor = 'default';
+  }
+});
+
+// ─── Event log ────────────────────────────────────────────────────────────────
+const LOG_MAX = 400; // максимум записей в логе
+let logCurrentCycleEl = null; // заголовок текущего цикла
+
+function logCycleStart(cycle) {
+  const list = document.getElementById('log-list');
+  const hdr = document.createElement('div');
+  hdr.className = 'log-cycle-header';
+  hdr.textContent = `▸ Месяц ${cycle}`;
+  list.appendChild(hdr);
+  logCurrentCycleEl = hdr;
+  // Обрезаем старые записи
+  while (list.children.length > LOG_MAX) list.removeChild(list.firstChild);
+  // Автопрокрутка вниз
+  list.scrollTop = list.scrollHeight;
+}
+
+function logEvent(text, type = 'info') {
+  const list = document.getElementById('log-list');
+  const el = document.createElement('div');
+  el.className = `log-entry log-${type}`;
+  el.textContent = text;
+  list.appendChild(el);
+  list.scrollTop = list.scrollHeight;
+}
+
+function clearLog() {
+  document.getElementById('log-list').innerHTML = '';
+  logCurrentCycleEl = null;
+}
+
+// ─── History ──────────────────────────────────────────────────────────────────
+function pushHistory() {
+  history.push(JSON.stringify({ nodes, edges, nodeId, edgeId, funcId }));
+  if (history.length > 50) history.shift();
+  future = [];
+}
+
+function undo() {
+  if (!history.length) return;
+  future.push(JSON.stringify({ nodes, edges, nodeId, edgeId, funcId }));
+  const state = JSON.parse(history.pop());
+  restoreState(state);
+}
+
+function redo() {
+  if (!future.length) return;
+  history.push(JSON.stringify({ nodes, edges, nodeId, edgeId, funcId }));
+  const state = JSON.parse(future.pop());
+  restoreState(state);
+}
+
+function restoreState(state) {
+  nodes = state.nodes;
+  edges = state.edges;
+  nodeId = state.nodeId;
+  edgeId = state.edgeId;
+  funcId = state.funcId;
+  renderAllNodes();
+  renderEdges();
+  recalc();
+}
+
+// ─── Save / Load ──────────────────────────────────────────────────────────────
+function saveFlow() {
+  const data = JSON.stringify({ 
+    title: 'Экономическая модель',
+    version: '2.0',
+    nodes, edges, cycle: simCycle 
+  }, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'economic-model.flow.json';
+  a.click();
+  notify('Модель сохранена');
+}
+
+function loadFlow() { 
+  document.getElementById('file-input').click(); 
+}
+
+function onFileLoad(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      pushHistory();
+      nodes = data.nodes || [];
+      edges = data.edges || [];
+      nodeId = Math.max(0, ...nodes.map(n => n.id));
+      edgeId = Math.max(0, ...edges.map(e => e.id));
+      funcId = Math.max(0, ...nodes.flatMap(n => n.functions || []).map(f => f.id));
+      simCycle = data.cycle || 0;
+      renderAllNodes();
+      renderEdges();
+      recalc();
+      notify('Модель загружена: ' + (data.title || file.name));
+    } catch {
+      notify('Ошибка загрузки файла');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ─── Chart history & drawing ──────────────────────────────────────────────────
+function clearHistory() {
+  nodeBalanceHistory = {};
+  realEconomyHistory = [];
+  productionHistory  = [];
+  drawCharts();
+}
+
+function recordHistory() {
+  nodes.forEach(node => {
+    if (!nodeBalanceHistory[node.id]) nodeBalanceHistory[node.id] = [];
+    nodeBalanceHistory[node.id].push(node.balance);
+    if (nodeBalanceHistory[node.id].length > CHART_MAX) nodeBalanceHistory[node.id].shift();
+  });
+
+  const realEcon = nodes
+    .filter(n => n.type !== 'bank')
+    .reduce((s, n) => s + n.balance, 0);
+  realEconomyHistory.push(realEcon);
+  if (realEconomyHistory.length > CHART_MAX) realEconomyHistory.shift();
+
+  const totalProd = nodes.reduce((s, n) =>
+    s + n.functions
+      .filter(f => f.type === 'production')
+      .reduce((a, f) => a + (f.cycleProduced || 0), 0), 0);
+  productionHistory.push(totalProd);
+  if (productionHistory.length > CHART_MAX) productionHistory.shift();
+}
+
+function setChartMode(chart, mode) {
+  chartModes[chart] = mode;
+  // Update toggle button styles
+  const isBalances = chart === 'balances';
+  document.getElementById(isBalances ? 'cmt-bal-window' : 'cmt-eco-window')
+    .classList.toggle('active', mode === 'window');
+  document.getElementById(isBalances ? 'cmt-bal-all' : 'cmt-eco-all')
+    .classList.toggle('active', mode === 'all');
+  drawCharts();
+}
+
+function sliceForMode(data, mode) {
+  if (mode === 'window') return data.slice(-CHART_WINDOW);
+  return data;
+}
+
+// Palette for node lines (cycles if more nodes than colors)
+const CHART_PALETTE = [
+  '#60a5fa','#f97316','#4ade80','#c084fc','#f59e0b',
+  '#38bdf8','#fb7185','#a3e635','#e879f9','#fcd34d',
+];
+
+function sizeCanvas(canvas) {
+  const wrap = canvas.parentElement;
+  const dpr  = window.devicePixelRatio || 1;
+  const W    = wrap.clientWidth  || 1;
+  const H    = wrap.clientHeight || 1;
+  canvas.width  = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  return { W, H, dpr };
+}
+
+function drawLineChart(canvas, datasets) {
+  const { W, H, dpr } = sizeCanvas(canvas);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  const maxLen = Math.max(0, ...datasets.map(d => d.data.length));
+  if (maxLen < 2) return;
+
+  const pad = { top: 6, right: 8, bottom: 18, left: 52 };
+  const cW = W - pad.left - pad.right;
+  const cH = H - pad.top - pad.bottom;
+
+  const allVals = datasets.flatMap(d => d.data);
+  let minV = Math.min(...allVals);
+  let maxV = Math.max(...allVals);
+  if (minV === maxV) { minV -= 1; maxV += 1; }
+  const range = maxV - minV;
+
+  // Grid + Y labels
+  const GRID = 4;
+  for (let i = 0; i <= GRID; i++) {
+    const y = pad.top + (i / GRID) * cH;
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 0.5;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cW, y); ctx.stroke();
+    const v = maxV - (i / GRID) * range;
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.font = '8px system-ui';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(formatNumShort(v), pad.left - 3, y);
+  }
+
+  // X axis line
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(pad.left, pad.top + cH);
+  ctx.lineTo(pad.left + cW, pad.top + cH);
+  ctx.stroke();
+
+  // X tick labels (every ~30 pts)
+  const tickStep = Math.max(1, Math.floor(maxLen / 5));
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.font = '8px system-ui';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  for (let i = 0; i < maxLen; i += tickStep) {
+    const x = pad.left + (i / (maxLen - 1)) * cW;
+    ctx.fillText(i + 1, x, pad.top + cH + 3);
+  }
+
+  // Draw lines
+  datasets.forEach(ds => {
+    if (ds.data.length < 2) return;
+    const n = ds.data.length;
+    ctx.strokeStyle = ds.color;
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ds.data.forEach((v, i) => {
+      const x = pad.left + (i / (maxLen - 1)) * cW;
+      const y = pad.top + cH - ((v - minV) / range) * cH;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Dot at last point
+    const lastX = pad.left + ((n - 1) / (maxLen - 1)) * cW;
+    const lastY = pad.top + cH - ((ds.data[n-1] - minV) / range) * cH;
+    ctx.fillStyle = ds.color;
+    ctx.beginPath(); ctx.arc(lastX, lastY, 2.5, 0, Math.PI * 2); ctx.fill();
+  });
+}
+
+function formatNumShort(n) {
+  if (Math.abs(n) >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+  if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(0) + 'K';
+  return Math.round(n).toString();
+}
+
+function drawCharts() {
+  // Chart 1: balance per node
+  const c1 = document.getElementById('chart-balances');
+  const legend = document.getElementById('legend-balances');
+  const nodeDatasets = nodes.map((node, i) => ({
+    data:  sliceForMode(nodeBalanceHistory[node.id] || [], chartModes.balances),
+    color: TYPE_ACCENT[node.type] || CHART_PALETTE[i % CHART_PALETTE.length],
+    label: node.label,
+    node,
+  })).filter(d => d.data.length > 0);
+
+  drawLineChart(c1, nodeDatasets);
+
+  legend.innerHTML = nodeDatasets.map(d =>
+    `<div class="legend-item">
+       <div class="legend-dot" style="background:${d.color}"></div>
+       <span>${d.node.label}</span>
+     </div>`
+  ).join('');
+
+  // Chart 2: real economy + production
+  const c2 = document.getElementById('chart-economy');
+  drawLineChart(c2, [
+    { data: sliceForMode(realEconomyHistory, chartModes.economy), color: '#4ade80' },
+    { data: sliceForMode(productionHistory,  chartModes.economy), color: '#f59e0b' },
+  ]);
+}
+
+function clearAll() {
+  if (!nodes.length && !edges.length) return;
+  if (!confirm('Очистить всё?')) return;
+  pushHistory();
+  nodes = []; edges = []; simCycle = 0;
+  clearHistory();
+  renderAllNodes(); renderEdges(); recalc();
+}
+
+// ─── Tooltip ─────────────────────────────────────────────────────────────────
+function showTooltip(text) {
+  tooltip.textContent = text;
+  tooltip.style.display = 'block';
+  document.addEventListener('mousemove', moveTooltip);
+}
+
+function moveTooltip(e) { 
+  tooltip.style.left = (e.clientX + 12) + 'px'; 
+  tooltip.style.top = (e.clientY + 12) + 'px'; 
+}
+
+function hideTooltip() { 
+  tooltip.style.display = 'none'; 
+  document.removeEventListener('mousemove', moveTooltip); 
+}
+
+// ─── Notification ─────────────────────────────────────────────────────────────
+let notifTimer = null;
+function notify(msg) {
+  const el = document.getElementById('notif');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => { el.style.display = 'none'; }, 2500);
+}
+
+// ─── Init with demo ───────────────────────────────────────────────────────────
+function initDemo() {
+  // Each addNode now creates default "Вход" (receive_in) and "Выход" (send_out) functions
+
+  const bank = addNode('bank');
+  bank.x = 80; bank.y = 120;
+  bank.label = 'Центральный банк';
+  bank.balance = 1000000;
+  const lendFunc = createFunction('lend_out', bank.id);
+  lendFunc.amount = 50000; lendFunc.rate = 12; lendFunc.term = 12;
+  lendFunc.frequency = 6; lendFunc.monthsToNext = 1;
+  bank.functions.push(lendFunc);
+
+  const company = addNode('enterprise');
+  company.x = 420; company.y = 60;
+  company.label = 'ООО "Торгаш"';
+  company.balance = 200000;
+  const tradeFunc = createFunction('trade_out', company.id);
+  tradeFunc.minAmount = 30000; tradeFunc.maxAmount = 80000;
+  company.functions.push(tradeFunc);
+
+  const household = addNode('household');
+  household.x = 740; household.y = 180;
+  household.label = 'Семья Ивановых';
+  household.balance = 50000;
+  const repayFunc = createFunction('repay_out', household.id);
+  repayFunc.payment = 5000; repayFunc.remaining = 10; repayFunc.active = true;
+  household.functions.push(repayFunc);
+
+  // Use default receive_in ("Вход") functions for incoming connections
+  const bankReceive = bank.functions.find(f => f.type === 'receive_in');
+  const householdReceive = household.functions.find(f => f.type === 'receive_in');
+
+  // bank lends to household (right→left)
+  edges.push({ id: ++edgeId, from: bank.id, fromFunc: lendFunc.id, fromSide: 'right', to: household.id, toFunc: householdReceive.id, toSide: 'left' });
+  // household repays to bank (left→left)
+  edges.push({ id: ++edgeId, from: household.id, fromFunc: repayFunc.id, fromSide: 'left', to: bank.id, toFunc: bankReceive.id, toSide: 'left' });
+  // company trades to household (right→right)
+  edges.push({ id: ++edgeId, from: company.id, fromFunc: tradeFunc.id, fromSide: 'right', to: household.id, toFunc: householdReceive.id, toSide: 'right' });
+
+  renderAllNodes();
+  renderEdges();
+  recalc();
+  
+  panX = 40; panY = 40;
+  updateTransform();
+}
+
+// ─── Initialize ───────────────────────────────────────────────────────────────
+updateTransform();
+notify('Добавьте блоки кнопкой + Блок или нажмите N');
+
+// Redraw charts on resize
+new ResizeObserver(() => drawCharts()).observe(document.getElementById('bottom-panels'));
+</script>
+</body>
+</html>

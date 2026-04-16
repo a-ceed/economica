@@ -13,8 +13,7 @@ function Header (props){
             <div className="outer site-nav-main">
 
                 <div className="inner">
-                    <SiteNav className="site-nav" />
-
+                    {/*<SiteNav className="site-nav" />*/}
                 </div>
 
             </div>
