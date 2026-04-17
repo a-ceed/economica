@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Межотраслевой баланс — Модель Леонтьева</title>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #7c3aed;
+    --green: #10b981;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+    --metal: #94a3b8;
+    --pipe: #f59e0b;
+    --connector: #10b981;
+    --electrode: #8b5cf6;
+    --pipeline: #00d4ff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Geologica', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    padding: 40px 0 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .header-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  h1 {
+    font-size: clamp(28px, 4vw, 52px);
+    font-weight: 900;
+    line-height: 1.05;
+    background: linear-gradient(135deg, #fff 0%, var(--accent) 60%, var(--accent3) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-meta {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 10px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .badge {
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.3);
+    color: var(--accent);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Layout grid */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.4), transparent);
+  }
+
+  .card-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title::before {
+    content: '';
+    width: 16px; height: 2px;
+    background: var(--accent);
+    display: inline-block;
+    border-radius: 2px;
+  }
+
+  /* Input control */
+  .control-group { margin-bottom: 28px; }
+
+  .control-label {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(0,212,255,0.6);
+    transition: box-shadow 0.2s;
+  }
+
+  input[type=range]::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 20px rgba(0,212,255,0.9);
+  }
+
+  .value-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 80px;
+    text-align: right;
+  }
+
+  .unit { font-size: 13px; color: var(--text-muted); }
+
+  /* Industries chain */
+  .industry-chain { display: flex; flex-direction: column; gap: 10px; }
+
+  .industry-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .industry-item::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 2px;
+  }
+
+  .industry-item.metal::after { background: var(--metal); }
+  .industry-item.pipe::after { background: var(--pipe); }
+  .industry-item.connector::after { background: var(--connector); }
+  .industry-item.electrode::after { background: var(--electrode); }
+  .industry-item.pipeline::after { background: var(--pipeline); }
+
+  .industry-icon { font-size: 22px; }
+
+  .industry-info { flex: 1; min-width: 0; }
+
+  .industry-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .industry-product {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .industry-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .industry-value .num { display: block; }
+  .industry-value .unit-small { font-size: 10px; color: var(--text-muted); font-weight: 400; }
+
+  .metal .industry-value { color: var(--metal); }
+  .pipe .industry-value { color: var(--pipe); }
+  .connector .industry-value { color: var(--connector); }
+  .electrode .industry-value { color: var(--electrode); }
+  .pipeline .industry-value { color: var(--pipeline); }
+
+  /* Arrow between industries */
+  .chain-arrow {
+    display: flex;
+    align-items: center;
+    padding-left: 14px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    gap: 6px;
+  }
+
+  .chain-arrow span { color: var(--accent); font-size: 16px; }
+
+  /* Right column */
+  .right-col { display: flex; flex-direction: column; gap: 24px; }
+
+  /* Matrix */
+  .matrix-wrap { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  th {
+    padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+  }
+
+  th.row-header { text-align: left; }
+
+  td {
+    padding: 9px 12px;
+    text-align: center;
+    border-bottom: 1px solid rgba(30,45,69,0.5);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    cursor: default;
+    transition: background 0.15s;
+    position: relative;
+  }
+
+  td:first-child { text-align: left; color: var(--text-dim); font-size: 12px; }
+
+  td:not(:first-child) { color: var(--accent); }
+  td:not(:first-child):hover { background: rgba(0,212,255,0.07); }
+
+  tr:last-child td { border-bottom: none; }
+
+  /* Tooltip */
+  .tooltip {
+    display: none;
+    position: fixed;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text);
+    max-width: 220px;
+    z-index: 100;
+    pointer-events: none;
+    line-height: 1.5;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    font-family: 'Geologica', sans-serif;
+  }
+
+  .tooltip.visible { display: block; }
+
+  /* Results table */
+  .results-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  .result-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .result-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+
+  .result-card .r-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 6px;
+  }
+
+  .result-card .r-value {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .result-card .r-unit {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Chart */
+  .chart-wrap { height: 260px; position: relative; }
+
+  /* Formula panel */
+  .formula-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+  }
+
+  .formula-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 10px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .formula-eq {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    color: var(--text);
+    letter-spacing: 1px;
+  }
+
+  .formula-eq .var { color: var(--accent); }
+  .formula-eq .op { color: var(--accent2); }
+
+  .formula-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+
+  /* Accordions */
+  .accordion { margin-bottom: 10px; }
+
+  .accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    user-select: none;
+    transition: background 0.2s;
+  }
+
+  .accordion-header:hover { background: #1e2d45; }
+  .accordion-header.open { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom-color: transparent; }
+
+  .accordion-icon {
+    font-size: 18px;
+    color: var(--accent);
+    transition: transform 0.3s;
+    font-weight: 300;
+  }
+
+  .accordion-header.open .accordion-icon { transform: rotate(45deg); }
+
+  .accordion-body {
+    display: none;
+    padding: 16px 18px;
+    background: rgba(17,24,39,0.7);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  .accordion-body.open { display: block; }
+
+  .accordion-body p { margin-bottom: 8px; }
+  .accordion-body p:last-child { margin-bottom: 0; }
+  .accordion-body strong { color: var(--text); }
+  .accordion-body .highlight { color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+  /* Step-by-step modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    max-width: 680px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 32px;
+    position: relative;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .modal-close:hover { background: var(--border); }
+
+  .step-block {
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--surface2);
+    border-radius: 10px;
+    border-left: 3px solid var(--accent);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.4s, transform 0.4s;
+  }
+
+  .step-block.visible { opacity: 1; transform: translateY(0); }
+
+  .step-num {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 6px;
+  }
+
+  .step-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .step-content {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.7;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Geologica', sans-serif;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+  }
+
+  .btn-primary:hover {
+    background: #33ddff;
+    box-shadow: 0 0 20px rgba(0,212,255,0.4);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+
+  .btn-outline:hover {
+    background: rgba(0,212,255,0.1);
+  }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover { background: var(--border); }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  /* Pipeline visualization */
+  .pipeline-svg-wrap {
+    overflow-x: auto;
+    padding: 10px 0;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #2a3f5f; }
+
+  /* Flow animation */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .pulsing { animation: pulse 2s ease-in-out infinite; }
+
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide-in { animation: slide-in 0.5s ease forwards; }
+
+  /* Leontiev bio */
+  .bio-card {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px;
+    background: var(--surface2);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin-top: 12px;
+  }
+
+  .bio-avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent3), var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  .bio-text { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+  .bio-text strong { color: var(--text); font-size: 13px; display: block; margin-bottom: 4px; }
+
+  /* Section spacing */
+  section { margin-bottom: 40px; }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::before {
+    content: '//';
+    color: var(--accent);
+  }
+
+  /* Highlight cells in matrix */
+  .cell-highlight { position: relative; }
+  .cell-highlight::after {
+    content: attr(data-tooltip-short);
+    display: none;
+  }
+
+  /* Number animation */
+  @keyframes count-up {
+    from { opacity: 0.3; }
+    to { opacity: 1; }
+  }
+
+  .updated { animation: count-up 0.3s ease; }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    margin-top: 48px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body>
+
+<div id="tooltip" class="tooltip"></div>
+
+<div class="container">
+  <header>
+    <div class="header-inner">
+      <div>
+        <div class="header-label">Интерактивный симулятор · Экономика</div>
+        <h1>Межотраслевой<br>баланс</h1>
+        <div class="header-meta">Модель Леонтьева · Производство водопровода</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;padding-top:8px">
+        <span class="badge">X = (I − A)⁻¹ · Y</span>
+        <button class="btn btn-outline" onclick="openModal()">▶ Расчёт шаг за шагом</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main grid -->
+  <div class="main-grid">
+
+    <!-- Left: controls + chain -->
+    <div style="display:flex;flex-direction:column;gap:24px">
+
+      <!-- Slider -->
+      <div class="card">
+        <div class="card-title">Параметр спроса</div>
+        <div class="control-group">
+          <label class="control-label">Длина водопровода</label>
+          <div class="slider-row">
+            <input type="range" id="lengthSlider" min="10" max="5000" step="10" value="500">
+            <div class="value-display"><span id="lengthVal">500</span><span class="unit"> м</span></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+          <button class="btn btn-secondary" style="font-size:11px;padding:7px 10px" onclick="setLength(100)">100 м</button>
+          <button class="btn btn-secondary" style="font-size:11px;padding:7px 10px" onclick="setLength(500)">500 м</button>
+          <button class="btn btn-secondary" style="font-size:11px;padding:7px 10px" onclick="setLength(1000)">1 км</button>
+          <button class="btn btn-secondary" style="font-size:11px;padding:7px 10px" onclick="setLength(5000)">5 км</button>
+        </div>
+      </div>
+
+      <!-- Industry chain -->
+      <div class="card">
+        <div class="card-title">Цепочка производства</div>
+        <div class="industry-chain" id="chainDisplay">
+          <div class="industry-item metal">
+            <div class="industry-icon">🏭</div>
+            <div class="industry-info">
+              <div class="industry-name">Металлургия</div>
+              <div class="industry-product">Производит сталь</div>
+            </div>
+            <div class="industry-value metal">
+              <span class="num" id="v-metal">—</span>
+              <span class="unit-small">тонн стали</span>
+            </div>
+          </div>
+          <div class="chain-arrow"><span>↓</span> поставляет сталь</div>
+          <div class="industry-item pipe">
+            <div class="industry-icon">🔧</div>
+            <div class="industry-info">
+              <div class="industry-name">Трубное пр-во</div>
+              <div class="industry-product">Производит трубы</div>
+            </div>
+            <div class="industry-value pipe">
+              <span class="num" id="v-pipe">—</span>
+              <span class="unit-small">тонн труб</span>
+            </div>
+          </div>
+          <div class="chain-arrow"><span>↓</span> поставляет трубы</div>
+          <div class="industry-item connector">
+            <div class="industry-icon">🔩</div>
+            <div class="industry-info">
+              <div class="industry-name">Соединители</div>
+              <div class="industry-product">Фитинги, муфты</div>
+            </div>
+            <div class="industry-value connector">
+              <span class="num" id="v-connector">—</span>
+              <span class="unit-small">ед. соединит.</span>
+            </div>
+          </div>
+          <div class="chain-arrow"><span>↓</span> поставляет соединители</div>
+          <div class="industry-item electrode">
+            <div class="industry-icon">⚡</div>
+            <div class="industry-info">
+              <div class="industry-name">Электроды</div>
+              <div class="industry-product">Сварочные электроды</div>
+            </div>
+            <div class="industry-value electrode">
+              <span class="num" id="v-electrode">—</span>
+              <span class="unit-small">кг электродов</span>
+            </div>
+          </div>
+          <div class="chain-arrow"><span>↓</span> финальный монтаж</div>
+          <div class="industry-item pipeline">
+            <div class="industry-icon">💧</div>
+            <div class="industry-info">
+              <div class="industry-name">Монтаж водопровода</div>
+              <div class="industry-product">Конечный продукт</div>
+            </div>
+            <div class="industry-value pipeline">
+              <span class="num" id="v-pipeline">—</span>
+              <span class="unit-small">метров</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right: matrix, chart, formulas -->
+    <div class="right-col">
+
+      <!-- Matrix -->
+      <div class="card">
+        <div class="card-title">Матрица прямых затрат (A)</div>
+        <div class="matrix-wrap">
+          <table id="matrixTable">
+            <thead>
+              <tr>
+                <th class="row-header">Отрасль ↓ \ Потребитель →</th>
+                <th>Металл</th>
+                <th>Трубы</th>
+                <th>Соед.</th>
+                <th>Электроды</th>
+                <th>Монтаж</th>
+              </tr>
+            </thead>
+            <tbody id="matrixBody"></tbody>
+          </table>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:10px;font-family:'JetBrains Mono',monospace">
+          💡 Наведите на ячейку — увидите её экономический смысл
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="card">
+        <div class="card-title">Валовой выпуск по отраслям (X)</div>
+        <div class="results-row" id="resultsRow"></div>
+      </div>
+
+      <!-- Chart -->
+      <div class="card">
+        <div class="card-title">Визуализация выпуска</div>
+        <div class="chart-wrap">
+          <canvas id="outputChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Formulas section -->
+  <section>
+    <div class="section-label">Справочная система</div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:20px">
+      <div class="formula-block">
+        <div class="formula-title">Уравнение МОБ</div>
+        <div class="formula-eq">
+          <span class="var">X</span> <span class="op">=</span> <span class="var">A</span>·<span class="var">X</span> <span class="op">+</span> <span class="var">Y</span>
+        </div>
+        <div class="formula-desc">
+          Валовой выпуск = промежуточное потребление + конечный спрос.<br>
+          <strong>X</strong> — выпуск, <strong>A·X</strong> — что уходит между отраслями, <strong>Y</strong> — что идёт потребителю.
+        </div>
+      </div>
+      <div class="formula-block">
+        <div class="formula-title">Формула Леонтьева</div>
+        <div class="formula-eq">
+          <span class="var">X</span> <span class="op">=</span> <span class="op">(</span><span class="var">I</span> <span class="op">−</span> <span class="var">A</span><span class="op">)⁻¹</span> · <span class="var">Y</span>
+        </div>
+        <div class="formula-desc">
+          Обратная матрица Леонтьева <strong>(I−A)⁻¹</strong> показывает полные (прямые + косвенные) затраты на единицу конечного спроса.
+        </div>
+      </div>
+      <div class="formula-block">
+        <div class="formula-title">Коэффициент прямых затрат</div>
+        <div class="formula-eq">
+          <span class="var">a<sub>ij</sub></span> <span class="op">=</span> <span class="var">x<sub>ij</sub></span> <span class="op">/</span> <span class="var">X<sub>j</sub></span>
+        </div>
+        <div class="formula-desc">
+          Сколько продукции отрасли <em>i</em> нужно, чтобы произвести единицу продукции отрасли <em>j</em>.
+        </div>
+      </div>
+    </div>
+
+    <!-- Accordions -->
+    <div class="accordion">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>📊 Прямые и полные затраты: в чём разница?</span>
+        <span class="accordion-icon">+</span>
+      </div>
+      <div class="accordion-body">
+        <p><strong>Прямые затраты</strong> — это то, что отрасль покупает непосредственно у другой. Например, трубное производство напрямую закупает сталь у металлургии. Коэффициент a<sub>12</sub> = 0.45 означает: чтобы выпустить 1 тонну труб, нужно 0.45 тонны стали.</p>
+        <p><strong>Полные затраты</strong> (матрица Леонтьева) учитывают цепочку: трубам нужна сталь, но чтобы сделать эту сталь, металлургии тоже нужны энергия, оборудование и т.д. — и так по всей цепи.</p>
+        <p>Вот почему <span class="highlight">(I−A)⁻¹</span> всегда больше или равна A: она включает все косвенные эффекты.</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>🧮 Как вычисляется обратная матрица?</span>
+        <span class="accordion-icon">+</span>
+      </div>
+      <div class="accordion-body">
+        <p>Для матрицы 2×2 обратная вычисляется через определитель:</p>
+        <p class="highlight">A⁻¹ = (1/det(A)) · [[d, -b], [-c, a]], где det(A) = ad − bc</p>
+        <p>Для матриц большего размера (как в нашем случае, 5×5) используют метод Гаусса-Жордана или разложение LU. В данном симуляторе матрица обращается численно по методу Гаусса с выбором главного элемента.</p>
+        <p><strong>Важно:</strong> матрица (I−A) должна быть невырожденной — то есть её определитель ≠ 0. Для экономически осмысленных матриц затрат это всегда выполнено.</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>🏛️ История: Василий Леонтьев и Нобелевская премия</span>
+        <span class="accordion-icon">+</span>
+      </div>
+      <div class="accordion-body">
+        <div class="bio-card">
+          <div class="bio-avatar">🏆</div>
+          <div class="bio-text">
+            <strong>Василий Васильевич Леонтьев (1905–1999)</strong>
+            Русско-американский экономист, создатель метода «затраты-выпуск». Родился в Санкт-Петербурге, эмигрировал в 1925 году. В 1941 году опубликовал анализ американской экономики через матрицу 42×42. В 1973 году получил Нобелевскую премию по экономике — «за развитие метода межотраслевого анализа и его применение к важным экономическим проблемам».
+          </div>
+        </div>
+        <p style="margin-top:12px">Метод МОБ применяется в государственном планировании (СССР, Япония, Китай), экологическом анализе (carbon footprint по цепочкам), оценке мультипликативного эффекта инвестиций.</p>
+        <p>Леонтьев также открыл <strong>«Парадокс Леонтьева»</strong>: США, богатые капиталом, экспортировали трудоёмкие товары — противоречие теории Хекшера-Олина.</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header" onclick="toggleAccordion(this)">
+        <span>💡 Почему без матрицы нельзя планировать производство?</span>
+        <span class="accordion-icon">+</span>
+      </div>
+      <div class="accordion-body">
+        <p>Представьте: государство хочет построить 100 км водопровода. Сколько стали нужно заказать?</p>
+        <p>Без МОБ: трубам нужно X тонн стали — заказали X. Но забыли, что сами соединители тоже содержат металл, что сварочный аппарат сделан из стали, что транспортные компании тоже потребляют металлоёмкую технику.</p>
+        <p><strong>МОБ считает ВСЕ прямые и косвенные потребности одновременно</strong>, решая систему уравнений. Без этого — дефицит на каком-то звене цепи, и весь проект останавливается.</p>
+        <p>Именно поэтому советское Госпланирование и современные модели supply chain используют метод Леонтьева.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    Межотраслевой баланс · Модель Леонтьева · Образовательный симулятор · Создано в СССР · Данные упрощены для обучения
+  </div>
+</footer>
+
+<!-- Step-by-step Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div style="margin-bottom:20px">
+      <div class="header-label" style="margin-bottom:6px">Пошаговый расчёт</div>
+      <h2 style="font-size:20px;font-weight:700;color:var(--text)">Как работает формула Леонтьева</h2>
+    </div>
+    <div id="stepsContainer"></div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeModal()">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =============================================
+// MATRIX MATH
+// =============================================
+
+function matMul(A, B) {
+  const n = A.length, m = B[0].length, p = B.length;
+  const C = Array.from({length:n}, () => Array(m).fill(0));
+  for(let i=0;i<n;i++) for(let j=0;j<m;j++) for(let k=0;k<p;k++) C[i][j]+=A[i][k]*B[k][j];
+  return C;
+}
+
+function identity(n) {
+  return Array.from({length:n}, (_,i) => Array.from({length:n}, (_,j) => i===j?1:0));
+}
+
+function invertMatrix(A) {
+  const n = A.length;
+  // Augmented matrix [A | I]
+  const M = A.map((row,i) => [...row, ...identity(n)[i]]);
+  for(let col=0; col<n; col++) {
+    // Find pivot
+    let maxRow = col;
+    for(let row=col+1;row<n;row++) if(Math.abs(M[row][col]) > Math.abs(M[maxRow][col])) maxRow=row;
+    [M[col], M[maxRow]] = [M[maxRow], M[col]];
+    const pivot = M[col][col];
+    if(Math.abs(pivot) < 1e-12) return null; // singular
+    for(let j=0;j<2*n;j++) M[col][j] /= pivot;
+    for(let row=0;row<n;row++) {
+      if(row===col) continue;
+      const factor = M[row][col];
+      for(let j=0;j<2*n;j++) M[row][j] -= factor*M[col][j];
+    }
+  }
+  return M.map(row => row.slice(n));
+}
+
+function matVec(A, v) {
+  return A.map(row => row.reduce((s,a,j) => s+a*v[j], 0));
+}
+
+function subMatrix(A, B) {
+  return A.map((row,i) => row.map((a,j) => a - B[i][j]));
+}
+
+// =============================================
+// MODEL DATA
+// =============================================
+
+// Industries: 0=Металл, 1=Трубы, 2=Соединители, 3=Электроды, 4=Монтаж
+const INDUSTRIES = ['Металл', 'Трубы', 'Соединит.', 'Электроды', 'Монтаж'];
+const UNITS = ['тонн', 'тонн', 'ед.', 'кг', 'м'];
+const COLORS = ['#94a3b8','#f59e0b','#10b981','#8b5cf6','#00d4ff'];
+
+// Matrix A: a[i][j] = сколько продукции отрасли i нужно для выпуска единицы отрасли j
+// Строки = поставщик, Колонки = потребитель
+const A = [
+//  Металл  Трубы  Соед.  Электр. Монтаж
+  [  0.05,  0.45,  0.30,   0.20,   0.00 ],  // Металл
+  [  0.00,  0.02,  0.01,   0.00,   0.40 ],  // Трубы
+  [  0.00,  0.01,  0.03,   0.00,   0.08 ],  // Соединители
+  [  0.00,  0.02,  0.01,   0.04,   0.02 ],  // Электроды
+  [  0.00,  0.00,  0.00,   0.00,   0.00 ],  // Монтаж
+];
+
+// Tooltips for cells
+function cellTooltip(i, j) {
+  const row = INDUSTRIES[i], col = INDUSTRIES[j];
+  const v = A[i][j];
+  if(v === 0) return `${row} не используется при производстве в отрасли «${col}»`;
+  return `Чтобы произвести 1 ед. продукции «${col}», нужно ${v} ед. продукции «${row}»`;
+}
+
+// =============================================
+// CALCULATION
+// =============================================
+
+function calcLeontiev(lengthM) {
+  const n = 5;
+  const I = identity(n);
+  const IminusA = subMatrix(I, A);
+  const Linv = invertMatrix(IminusA); // (I-A)^-1
+
+  // Final demand: only pipeline (index 4) = length in meters
+  const Y = [0, 0, 0, 0, lengthM];
+
+  const X = matVec(Linv, Y);
+  return { X, Linv, Y };
+}
+
+// =============================================
+// CHART
+// =============================================
+
+let chart;
+
+function initChart() {
+  const ctx = document.getElementById('outputChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: INDUSTRIES,
+      datasets: [{
+        label: 'Валовой выпуск',
+        data: [0,0,0,0,0],
+        backgroundColor: COLORS.map(c => c + '88'),
+        borderColor: COLORS,
+        borderWidth: 2,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const v = ctx.parsed.y;
+              return ` ${fmt(v)} ${UNITS[ctx.dataIndex]}`;
+            }
+          },
+          backgroundColor: '#1a2235',
+          borderColor: '#1e2d45',
+          borderWidth: 1,
+          titleColor: '#e2e8f0',
+          bodyColor: '#94a3b8',
+          padding: 10,
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 11 } },
+          grid: { color: 'rgba(30,45,69,0.5)' },
+        },
+        y: {
+          ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } },
+          grid: { color: 'rgba(30,45,69,0.5)' },
+        }
+      }
+    }
+  });
+}
+
+// =============================================
+// MATRIX TABLE
+// =============================================
+
+function buildMatrixTable() {
+  const tbody = document.getElementById('matrixBody');
+  tbody.innerHTML = '';
+  A.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    const thCell = document.createElement('td');
+    thCell.textContent = INDUSTRIES[i];
+    tr.appendChild(thCell);
+    row.forEach((val, j) => {
+      const td = document.createElement('td');
+      td.textContent = val.toFixed(2);
+      td.style.color = val === 0 ? '#2a3f5f' : COLORS[i];
+      td.addEventListener('mouseenter', (e) => showTooltip(e, cellTooltip(i,j)));
+      td.addEventListener('mousemove', (e) => moveTooltip(e));
+      td.addEventListener('mouseleave', hideTooltip);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+// =============================================
+// RESULTS
+// =============================================
+
+function buildResultsRow(X) {
+  const container = document.getElementById('resultsRow');
+  container.innerHTML = '';
+  INDUSTRIES.forEach((name, i) => {
+    const card = document.createElement('div');
+    card.className = 'result-card slide-in';
+    card.style.animationDelay = `${i * 0.05}s`;
+    card.innerHTML = `
+      <div class="r-label">${name}</div>
+      <div class="r-value" style="color:${COLORS[i]}">${fmt(X[i])}</div>
+      <div class="r-unit">${UNITS[i]}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// =============================================
+// CHAIN DISPLAY
+// =============================================
+
+function updateChain(X, length) {
+  const ids = ['v-metal','v-pipe','v-connector','v-electrode','v-pipeline'];
+  const vals = [X[0], X[1], X[2], X[3], length];
+  ids.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.textContent = fmt(vals[i]);
+    el.classList.remove('updated');
+    void el.offsetWidth;
+    el.classList.add('updated');
+  });
+}
+
+// =============================================
+// TOOLTIP
+// =============================================
+
+function showTooltip(e, text) {
+  const tip = document.getElementById('tooltip');
+  tip.textContent = text;
+  tip.classList.add('visible');
+  moveTooltip(e);
+}
+
+function moveTooltip(e) {
+  const tip = document.getElementById('tooltip');
+  tip.style.left = (e.clientX + 14) + 'px';
+  tip.style.top = (e.clientY - 10) + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').classList.remove('visible');
+}
+
+// =============================================
+// FORMAT
+// =============================================
+
+function fmt(v) {
+  if(v === undefined || v === null) return '—';
+  if(Math.abs(v) < 0.01) return '0';
+  if(Math.abs(v) >= 1000) return Math.round(v).toLocaleString('ru');
+  return v.toFixed(1);
+}
+
+// =============================================
+// UPDATE ALL
+// =============================================
+
+function update() {
+  const length = parseInt(document.getElementById('lengthSlider').value);
+  document.getElementById('lengthVal').textContent = length.toLocaleString('ru');
+
+  const { X } = calcLeontiev(length);
+
+  updateChain(X, length);
+  buildResultsRow(X);
+
+  // Update chart
+  if(chart) {
+    chart.data.datasets[0].data = X;
+    chart.update();
+  }
+}
+
+function setLength(val) {
+  document.getElementById('lengthSlider').value = val;
+  update();
+}
+
+// =============================================
+// ACCORDIONS
+// =============================================
+
+function toggleAccordion(header) {
+  const body = header.nextElementSibling;
+  const isOpen = header.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.accordion-header').forEach(h => {
+    h.classList.remove('open');
+    h.nextElementSibling.classList.remove('open');
+  });
+  if(!isOpen) {
+    header.classList.add('open');
+    body.classList.add('open');
+  }
+}
+
+// =============================================
+// STEP-BY-STEP MODAL
+// =============================================
+
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('open');
+  buildSteps();
+  // Small delay so CSS transition fires after display:flex kicks in
+  setTimeout(animateSteps, 80);
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function buildSteps() {
+  const length = parseInt(document.getElementById('lengthSlider').value);
+  const { X, Linv, Y } = calcLeontiev(length);
+  const n = 5;
+
+  const stepsData = [
+    {
+      num: 'ШАГ 01',
+      title: 'Задаём вектор конечного спроса Y',
+      content: `Пользователь хочет ${length.toLocaleString('ru')} м водопровода.\nВектор Y (конечный спрос):\n${INDUSTRIES.map((ind,i) => `  ${ind}: ${Y[i].toLocaleString('ru')} ${UNITS[i]}`).join('\n')}\nТолько монтаж имеет ненулевой спрос.`
+    },
+    {
+      num: 'ШАГ 02',
+      title: 'Матрица прямых затрат A (5×5)',
+      content: `Каждый элемент a[i][j] — затраты отрасли i на единицу продукции j.\nПример: a[0][1] = ${A[0][1]} → на 1 т труб нужно ${A[0][1]} т металла.\n\nМатрица A:\n${A.map((row,i) => `  ${INDUSTRIES[i]}: [${row.map(v=>v.toFixed(2)).join(', ')}]`).join('\n')}`
+    },
+    {
+      num: 'ШАГ 03',
+      title: 'Вычисляем (I − A)',
+      content: `Вычитаем A из единичной матрицы I:\n(I − A)[i][j] = I[i][j] − A[i][j]\n\nЭта матрица описывает «нетто» производство —\nчто остаётся после вычета промежуточных затрат.`
+    },
+    {
+      num: 'ШАГ 04',
+      title: 'Обращаем матрицу: (I − A)⁻¹',
+      content: `Обратная матрица Леонтьева:\n${Linv.map((row,i) => `  ${INDUSTRIES[i]}: [${row.map(v=>v.toFixed(3)).join(', ')}]`).join('\n')}\n\nКаждый элемент L[i][j] показывает: сколько продукции\nотрасли i нужно произвести для 1 ед. конечного спроса j.`
+    },
+    {
+      num: 'ШАГ 05',
+      title: 'Умножаем: X = (I − A)⁻¹ · Y',
+      content: `Финальный расчёт валового выпуска:\n${INDUSTRIES.map((ind,i) => `  ${ind}: ${fmt(X[i])} ${UNITS[i]}`).join('\n')}\n\nВот сколько каждая отрасль должна произвести,\nчтобы обеспечить ${length.toLocaleString('ru')} м водопровода.`
+    }
+  ];
+
+  const container = document.getElementById('stepsContainer');
+  container.innerHTML = stepsData.map((s, idx) => `
+    <div class="step-block" id="step-${idx}">
+      <div class="step-num">${s.num}</div>
+      <div class="step-title">${s.title}</div>
+      <div class="step-content">${s.content}</div>
+    </div>
+  `).join('');
+}
+
+function animateSteps() {
+  const steps = document.querySelectorAll('.step-block');
+  steps.forEach(s => s.classList.remove('visible'));
+  steps.forEach((s, i) => {
+    setTimeout(() => s.classList.add('visible'), i * 400);
+  });
+}
+
+// =============================================
+// INIT
+// =============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildMatrixTable();
+  initChart();
+  update();
+
+  document.getElementById('lengthSlider').addEventListener('input', update);
+
+  document.getElementById('modalOverlay').addEventListener('click', (e) => {
+    if(e.target === e.currentTarget) closeModal();
+  });
+});
+</script>
+</body>
+</html>
