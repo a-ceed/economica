@@ -15,7 +15,7 @@ export default function History({ frontmatter, content, dataArray }) {
                                     <li className="author-list-item">
                                         <a className="author-avatar">
                                             <Image
-                                                src="https://temniyecolog.ru/_next/static/media/dark8.5416d8b1.png"
+                                                src="https://economica.su/_next/static/media/dark8.5416d8b1.png"
                                                 alt="Экология Тёмного эколога"
                                                 width={100}
                                                 height={100}
@@ -35,7 +35,7 @@ export default function History({ frontmatter, content, dataArray }) {
                     </header>
                 </article>
 
-                <span><a href="https://temniyecolog.ru/historical-roulette.html">Программа</a> представляет собой некий барабан с карточками исторических личностей размещенных на временной шкале истории, что позволяет как взглянуть на глобальный исторический процесс в целостности, так и узнать о взаимоотношениях конкретных личностей в истории. Программа упрощает восприятие и запоминание глобального исторического процесса ввиду формирования наглядной взаимосвязи личностей в истории.</span>
+                <span><a href="https://economica.su/historical-roulette.html">Программа</a> представляет собой некий барабан с карточками исторических личностей размещенных на временной шкале истории, что позволяет как взглянуть на глобальный исторический процесс в целостности, так и узнать о взаимоотношениях конкретных личностей в истории. Программа упрощает восприятие и запоминание глобального исторического процесса ввиду формирования наглядной взаимосвязи личностей в истории.</span>
 
                 <section className="post-full-content">
                     <div>
@@ -69,7 +69,7 @@ export default function History({ frontmatter, content, dataArray }) {
                         <span>Для перемещения по шкале времени и вращения барабана двигайте зажатой ЛКМ: </span>
                         <br/>
                         <br/>
-                        <a href="https://temniyecolog.ru/history-drum-insert-base-v0.0.3.html">Историческая рулетка</a><br/>
+                        <a href="https://economica.su/history-drum-insert-base-v0.0.3.html">Историческая рулетка</a><br/>
                         <br/>
 
                         <br/>

@@ -26,7 +26,7 @@ export default function Air({frontmatter, content}) {
                         <ul className="author-list">
                             <li className="author-list-item">
                                 <a className="author-avatar">
-                                    <Image src={"https://temniyecolog.ru/_next/static/media/dark8.5416d8b1.png"} alt="Экология Тёмного эколога" layout="responsive" quality="25" width="100" height="100" />
+                                    <Image src={"https://economica.su/_next/static/media/dark8.5416d8b1.png"} alt="Экология Тёмного эколога" layout="responsive" quality="25" width="100" height="100" />
                                 </a>
                             </li>
                         </ul>

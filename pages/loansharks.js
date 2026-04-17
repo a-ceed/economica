@@ -15,7 +15,7 @@ export default function Loansharks({ frontmatter, content, dataArray }) {
                                     <li className="author-list-item">
                                         <a className="author-avatar">
                                             <Image
-                                                src="https://temniyecolog.ru/_next/static/media/dark8.5416d8b1.png"
+                                                src="https://economica.su/_next/static/media/dark8.5416d8b1.png"
                                                 alt="Экология Тёмного эколога"
                                                 width={100}
                                                 height={100}
@@ -87,7 +87,7 @@ export default function Loansharks({ frontmatter, content, dataArray }) {
                         <br/><br/><span>В конце игры изучите отображаемую статистику и логи.</span>
                         <br/>
                         <br/>
-                        <a href="https://temniyecolog.ru/loan-sharks.html">Игра Акулы ростовщики</a><br/>
+                        <a href="https://economica.su/loan-sharks.html">Игра Акулы ростовщики</a><br/>
                         <br/>
 
                         <br/>

@@ -37,15 +37,15 @@ export default function Home({posts}) {
           <meta property="og:type" content="article"/>
           <meta property="og:title" content="Блог Тёмного эколога"/>
           <meta property="og:description" content="Пойдём со мной из мира грёз экоактивизма в реальный мир науки экологии. Я расскажу как корпорации «разводят» зеленое движение и покажу тебе мир без них."/>
-          <meta property="og:image" content="https://temniyecolog.ru/_next/static/media/dark8.5416d8b1.png"/>
+          <meta property="og:image" content="https://economica.su/_next/static/media/dark8.5416d8b1.png"/>
           <meta property="og:image:width" content="256"/>
           <meta property="og:image:height" content="256"/>
-          <meta property="og:url" content="https://temniyecolog.ru"/>
+          <meta property="og:url" content="https://economica.su"/>
           <meta property="og:site_name" content="Блог Тёмного Эколога"/>
 
 
 
-        <link rel="icon" href="https://temniyecolog.ru/favicon.ico" />
+        <link rel="icon" href="https://economica.su/favicon.ico" />
           {/*<YandexMetrika*/}
           {/*    yid={YOUR_YM_ID}*/}
           {/*    clickmap={true}*/}
@@ -79,7 +79,7 @@ export default function Home({posts}) {
                                     {nextImages ? (
                                         <div className="post-card-media">
                                             <Image
-                                                src={"https://temniyecolog.ru/"+postImage}
+                                                src={"https://economica.su/"+postImage}
                                                 alt={title}
                                                 sizes="(max-width: 640px) 320px, (max-width: 1000px) 500px, 680px"
                                                 layout="fill"

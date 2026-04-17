@@ -27,10 +27,10 @@ export default function Post({frontmatter, content, slug}) {
             <meta property="og:type" content="article"/>
             <meta property="og:title" content={title}/>
             <meta property="og:description" content={annotation}/>
-            <meta property="og:image" content={"https://temniyecolog.ru/"+bannerImage}/>
+            <meta property="og:image" content={"https://economica.su/"+bannerImage}/>
             <meta property="og:image:width" content="512"/>
             <meta property="og:image:height" content="320"/>
-            <meta property="og:url" content={"https://temniyecolog.ru/posts/"+urlfilename}/>
+            <meta property="og:url" content={"https://economica.su/posts/"+urlfilename}/>
             <meta property="og:site_name" content="<Блог Тёмного Эколога>"/>
 
         </Head>
@@ -50,7 +50,7 @@ export default function Post({frontmatter, content, slug}) {
                         <ul className="author-list">
                             <li className="author-list-item">
                                 <a className="author-avatar">
-                                    <Image src={"https://temniyecolog.ru/_next/static/media/dark8.5416d8b1.png"} alt="Экология Тёмного эколога" layout="responsive" quality="25" width="36" height="36" />
+                                    <Image src={"https://economica.su/_next/static/media/dark8.5416d8b1.png"} alt="Экология Тёмного эколога" layout="responsive" quality="25" width="36" height="36" />
                                 </a>
                             </li>
                         </ul>
@@ -66,7 +66,7 @@ export default function Post({frontmatter, content, slug}) {
             </header>
         </article>
 
-            <div className="imgcontainer"><img src={"https://temniyecolog.ru/"+bannerImage}/></div>
+            <div className="imgcontainer"><img src={"https://economica.su/"+bannerImage}/></div>
 
             <section className="post-full-content">
                 <div className="post-content load-external-scripts" dangerouslySetInnerHTML={{ __html: md().render(content) }} />
