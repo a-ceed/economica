@@ -28,8 +28,8 @@ export default function Home({posts}) {
   return (
     <div className="">
       <Head>
-        <title>Тёмный эколог — блог</title>
-        <meta name="description" content="Пойдём со мной из мира грёз экоактивизма в реальный мир науки экологии. Я расскажу как корпорации «разводят» зеленое движение и покажу тебе мир без них." />
+        <title>Экономические модели и симуляторы</title>
+        <meta name="description" content="Программы экономического моделирования" />
         <meta name="yandex-verification" content="1b19d3159f8ae8fd" />
 
           {/*OpenGraph*/}
