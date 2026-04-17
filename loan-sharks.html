@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Акулы Ростовщики</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --ink:#0d0b0e;
+  --red:#c0312b;
+  --red-dark:#8a1e1a;
+  --gold:#c9922a;
+  --gold-light:#e8b84b;
+  --teal:#1a6b6e;
+  --teal-light:#2d9da1;
+  --muted:#7a7060;
+  --ocean:#0d1d2e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Noto Sans',sans-serif;background:var(--ocean)}
+
+#app{
+  display:flex;flex-direction:column;
+  height:100vh;height:100dvh;
+  overflow:hidden;position:relative;
+  background:var(--ocean);
+  background-image:
+    radial-gradient(ellipse at 20% 0%,rgba(26,107,110,0.25) 0%,transparent 55%),
+    radial-gradient(ellipse at 80% 100%,rgba(192,49,43,0.15) 0%,transparent 50%);
+}
+#app::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(180deg,transparent 0px,transparent 3px,rgba(255,255,255,0.012) 3px,rgba(255,255,255,0.012) 4px);
+}
+
+/* ── HEADER ── */
+header{
+  flex-shrink:0;
+  background:linear-gradient(135deg,#0a1520 0%,#142030 100%);
+  border-bottom:2px solid var(--gold);
+  padding:9px 14px 7px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  position:relative;z-index:10;
+  box-shadow:0 4px 20px rgba(0,0,0,0.5);
+}
+.header-title{display:flex;align-items:center;gap:10px}
+.shark-icon{
+  font-size:26px;line-height:1;
+  filter:drop-shadow(0 0 8px rgba(201,146,42,0.6));
+  animation:sharkBob 3s ease-in-out infinite;
+}
+@keyframes sharkBob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-3px) rotate(2deg)}}
+.title-text{font-family:'Black Han Sans',sans-serif;font-size:clamp(15px,3vw,24px);color:var(--gold-light);letter-spacing:0.06em;line-height:1;text-shadow:0 2px 8px rgba(0,0,0,0.7)}
+.title-sub{font-size:9px;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-top:2px}
+.header-stats{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.hstat{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:3px 9px;text-align:center;min-width:52px}
+.hstat-val{font-family:'Black Han Sans',sans-serif;font-size:clamp(13px,2.5vw,19px);color:var(--gold-light);line-height:1.1}
+.hstat-val.red{color:#e05a54}.hstat-val.teal{color:#4ecad0}
+.hstat-lbl{font-size:8px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase}
+.cycle-pill{background:var(--gold);color:var(--ink);font-family:'Black Han Sans',sans-serif;font-size:12px;letter-spacing:0.1em;padding:4px 11px;border-radius:20px;white-space:nowrap;box-shadow:0 2px 10px rgba(201,146,42,0.4)}
+
+/* ── MAIN ── */
+#main{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;z-index:1;padding:9px 9px 4px;scrollbar-width:thin;scrollbar-color:var(--teal) var(--ocean)}
+#main::-webkit-scrollbar{width:5px}
+#main::-webkit-scrollbar-track{background:var(--ocean)}
+#main::-webkit-scrollbar-thumb{background:var(--teal);border-radius:3px}
+
+/* ── BANK CARD ── */
+.bank-card{
+  background:linear-gradient(135deg,#1a0a06 0%,#2d1209 60%,#1a0a06 100%);
+  border:2px solid var(--gold);border-radius:8px;
+  padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-bottom:9px;position:relative;overflow:hidden;
+  box-shadow:0 4px 24px rgba(201,146,42,0.2),inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.bank-card::before{content:'🦈';position:absolute;right:-10px;bottom:-6px;font-size:66px;opacity:0.07;transform:scaleX(-1);pointer-events:none}
+.bank-inner{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+.bank-icon{font-size:30px;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(201,146,42,0.5))}
+.bank-label{font-family:'Black Han Sans',sans-serif;font-size:12px;letter-spacing:0.1em;color:var(--gold);text-transform:uppercase}
+.bank-money{font-family:'Black Han Sans',sans-serif;font-size:clamp(20px,4vw,34px);color:var(--gold-light);line-height:1;transition:all 0.3s}
+.bank-sub{font-size:9px;color:var(--muted);letter-spacing:0.1em;margin-top:1px}
+.wealth-bar-track{height:5px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden;margin-top:6px}
+.wealth-bar-fill{height:100%;background:linear-gradient(90deg,#8a1e1a,var(--gold));transition:width 0.5s ease;border-radius:3px}
+.wealth-label{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:3px}
+.bank-right{display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-shrink:0}
+.bank-stat{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:3px 9px;text-align:center;min-width:52px}
+.bs-val{font-family:'Black Han Sans',sans-serif;font-size:13px;color:var(--gold-light)}
+.bs-val.red{color:#e05a54}
+.bs-lbl{font-size:8px;color:var(--muted);letter-spacing:0.08em}
+
+/* bank-owned chips row */
+.bank-owns-row{
+  display:flex;gap:6px;flex-wrap:wrap;align-items:center;
+  font-size:9px;color:var(--muted);
+  margin-bottom:8px;padding:5px 10px;
+  background:rgba(201,146,42,0.07);
+  border-radius:5px;border:1px solid rgba(201,146,42,0.25);
+}
+.bank-owns-row strong{color:var(--gold-light)}
+.own-chip{
+  background:rgba(201,146,42,0.22);border:1px solid rgba(201,146,42,0.6);
+  color:var(--gold-light);font-size:9px;font-family:'Black Han Sans',sans-serif;
+  padding:1px 8px;border-radius:10px;letter-spacing:0.08em;
+}
+
+/* ── SECTION TITLE ── */
+.section-title{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;border-left:2px solid var(--teal);padding-left:8px}
+
+/* ── PLAYERS GRID ── */
+#playersGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:9px}@media(min-width:500px){#playersGrid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}}
+
+/* ── PLAYER CARD — free ── */
+.pcard{
+  background:linear-gradient(160deg,#0e1c2c 0%,#142436 100%);
+  border:1px solid rgba(255,255,255,0.1);border-radius:8px;
+  padding:10px 12px;position:relative;overflow:hidden;
+  transition:border-color 0.3s,box-shadow 0.3s;
+}
+.pcard.you{border-color:var(--teal-light);box-shadow:0 0 14px rgba(45,157,161,0.2)}
+
+/* ── PLAYER CARD — bank-owned ── */
+.pcard.bank-owned{
+  background:linear-gradient(160deg,#1c0e06 0%,#2a1408 100%);
+  border:2px solid var(--gold);
+  box-shadow:0 0 20px rgba(201,146,42,0.3);
+}
+.owned-banner{
+  position:absolute;top:0;left:0;right:0;
+  background:linear-gradient(90deg,#6a1010,#8a1e1a);
+  color:#ffccc0;font-family:'Black Han Sans',sans-serif;
+  font-size:9px;letter-spacing:0.18em;text-align:center;padding:3px 0;
+  text-transform:uppercase;
+}
+.owned-shark-bg{position:absolute;right:4px;bottom:2px;font-size:24px;opacity:0.3;pointer-events:none}
+.bank-seal{
+  display:inline-block;background:var(--gold);color:var(--ink);
+  font-family:'Black Han Sans',sans-serif;font-size:8px;letter-spacing:0.1em;
+  padding:1px 6px;border-radius:10px;vertical-align:middle;margin-left:3px;
+}
+
+/* accent top bar */
+.pcard-accent{position:absolute;top:0;left:0;right:0;height:3px;border-radius:8px 8px 0 0}
+.bank-owned .pcard-accent{background:linear-gradient(90deg,#8a1e1a,var(--gold))!important;height:3px}
+
+.pcard-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.pcard-name{font-family:'Black Han Sans',sans-serif;font-size:13px;letter-spacing:0.05em;line-height:1}
+.you-badge{background:var(--teal);color:#fff;font-size:8px;font-weight:700;letter-spacing:0.15em;padding:1px 6px;border-radius:10px}
+.ai-badge{font-size:8px;color:var(--muted);letter-spacing:0.1em}
+
+.pcard-money{font-family:'Black Han Sans',sans-serif;font-size:clamp(18px,3vw,28px);line-height:1;transition:all 0.3s}
+.pcard-money-lbl{font-size:9px;color:var(--muted);letter-spacing:0.1em;margin-bottom:5px}
+
+.pcard-debt-row{display:flex;justify-content:space-between;align-items:center;padding-top:5px;border-top:1px solid rgba(255,255,255,0.07);font-size:11px}
+.debt-lbl{color:var(--muted)}
+.debt-val{font-family:'Black Han Sans',sans-serif;font-size:13px;color:#e05a54;transition:all 0.3s}
+.debt-val.zero{color:var(--muted);font-size:11px}
+
+/* debt countdown pips */
+.pips-row{display:flex;align-items:center;gap:5px;margin-top:5px}
+.pips-lbl{font-size:8px;color:var(--muted);white-space:nowrap}
+.pips{display:flex;gap:2px;flex-wrap:wrap}
+.pip{width:8px;height:6px;border-radius:2px;background:rgba(255,255,255,0.1);transition:background 0.3s}
+.pip.used{background:#e8934a}
+.pip.danger{background:#e05a54;box-shadow:0 0 5px rgba(224,90,84,0.7);animation:pipPulse 0.8s ease-in-out infinite}
+@keyframes pipPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+.pcard-bar{height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;margin-top:6px}
+.pcard-bar-fill{height:100%;border-radius:2px;transition:width 0.5s ease}
+
+/* ── CHART ── */
+.chart-wrap{background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:9px 11px 7px;margin-bottom:9px}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;flex-wrap:wrap;gap:5px}
+.chart-legend{display:flex;gap:9px;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--muted)}
+.leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+canvas#chart{width:100%;display:block;border-radius:4px}
+
+/* ── LOG ── */
+.log-wrap{background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.07);border-radius:8px;overflow:hidden;margin-bottom:4px}
+.log-head{padding:5px 12px;background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.07);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
+.log-body{max-height:200px;overflow-y:auto;padding:5px 10px;display:flex;flex-direction:column;gap:1px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.1) transparent}
+.log-body::-webkit-scrollbar{width:3px}
+.log-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px}
+.log-line{font-size:10px;line-height:1.5;color:rgba(255,255,255,0.35);animation:logPop 0.2s ease}
+@keyframes logPop{from{opacity:0;transform:translateX(4px)}to{opacity:1;transform:none}}
+.log-line.cycle-h{color:var(--gold);font-weight:700;font-size:11px;margin-top:3px}
+.log-line .lc{color:rgba(200,160,80,0.7)}
+.log-line .ll{color:rgba(74,200,210,0.8)}
+.log-line .lp{color:rgba(80,200,120,0.8)}
+.log-line .li{color:rgba(220,80,70,0.8)}
+.log-line .lo{color:var(--gold-light);font-weight:700}
+
+/* ── FOOTER ── */
+footer{
+  flex-shrink:0;background:linear-gradient(0deg,#060c14 0%,#0d1824 100%);
+  border-top:2px solid var(--gold);padding:9px 13px;
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  position:relative;z-index:10;box-shadow:0 -4px 20px rgba(0,0,0,0.6);
+}
+.btn-next{font-family:'Black Han Sans',sans-serif;font-size:clamp(12px,2.5vw,15px);letter-spacing:0.1em;color:var(--ink);background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 100%);border:none;padding:9px clamp(12px,3vw,26px);border-radius:5px;cursor:pointer;transition:all 0.15s;box-shadow:0 3px 16px rgba(201,146,42,0.4);white-space:nowrap}
+.btn-next:hover{filter:brightness(1.12);transform:translateY(-1px);box-shadow:0 5px 20px rgba(201,146,42,0.55)}
+.btn-next:active{transform:translateY(0)}
+.btn-next:disabled{background:#2a2a30;color:#555;cursor:not-allowed;box-shadow:none;transform:none}
+.btn-auto{font-family:'Black Han Sans',sans-serif;font-size:12px;letter-spacing:0.08em;color:var(--teal-light);background:transparent;border:1px solid var(--teal);padding:8px 14px;border-radius:5px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.btn-auto:hover{background:rgba(45,157,161,0.12)}
+.btn-auto.on{background:var(--teal);color:#fff}
+.btn-reset{font-family:'Black Han Sans',sans-serif;font-size:12px;letter-spacing:0.08em;color:var(--muted);background:transparent;border:1px solid rgba(255,255,255,0.12);padding:8px 13px;border-radius:5px;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.btn-reset:hover{border-color:var(--muted);color:#ccc}
+.footer-info{font-size:10px;color:var(--muted);flex:1;min-width:80px;line-height:1.4}
+.footer-info strong{color:var(--gold-light)}
+
+/* ── GAMEOVER ── */
+#gameOver{display:none;position:fixed;inset:0;z-index:200;background:rgba(6,12,20,0.93);align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+#gameOver.show{display:flex}
+.go-box{background:linear-gradient(160deg,#0e1020,#1a0a06);border:2px solid var(--gold);border-radius:10px;padding:clamp(20px,5vw,44px);max-width:min(480px,92vw);width:100%;text-align:center;box-shadow:0 0 60px rgba(201,146,42,0.25);position:relative}.go-close{position:absolute;top:12px;right:14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.6);font-size:18px;line-height:1;width:30px;height:30px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}.go-close:hover{background:rgba(255,255,255,0.18);color:#fff}
+.go-title{font-family:'Black Han Sans',sans-serif;font-size:clamp(26px,6vw,46px);letter-spacing:0.15em;color:var(--gold-light);margin-bottom:8px}
+.go-sub{font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+.go-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:18px}
+.go-stat{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:11px}
+.go-stat-v{font-family:'Black Han Sans',sans-serif;font-size:clamp(18px,4vw,30px);color:var(--gold-light)}
+.go-stat-l{font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.go-insight{background:rgba(255,255,255,0.03);border-left:3px solid var(--gold);padding:9px 13px;font-size:11px;color:var(--muted);line-height:1.6;text-align:left;border-radius:0 4px 4px 0;margin-bottom:18px}
+.go-insight strong{color:var(--gold-light)}
+
+@keyframes valPop{0%{transform:scale(1.15);color:#fff}100%{transform:scale(1)}}
+.pop{animation:valPop 0.35s ease}
+</style>
+</head>
+<body>
+<div id="app">
+
+<header>
+  <div class="header-title">
+    <div class="shark-icon">🦈</div>
+    <div>
+      <div class="title-text">АКУЛЫ РОСТОВЩИКИ</div>
+      <div class="title-sub">Симуляция долгового захвата</div>
+    </div>
+  </div>
+  <div class="header-stats">
+    <div class="hstat"><div class="hstat-val" id="hCycle">0</div><div class="hstat-lbl">Цикл</div></div>
+    <div class="hstat"><div class="hstat-val teal" id="hFree">—</div><div class="hstat-lbl">Свободных</div></div>
+    <div class="hstat"><div class="hstat-val red" id="hOwned">0</div><div class="hstat-lbl">У банка</div></div>
+    <div class="hstat" title="Деньги, созданные процентами по кредитам"><div class="hstat-val" style="color:#e8934a" id="hInterest">0</div><div class="hstat-lbl">% деньги</div></div>
+    <div class="hstat" title="Среднее арифметическое надбавок игроков с долгом — инфляция цен"><div class="hstat-val" style="color:#d97aba" id="hInflation">0</div><div class="hstat-lbl">Инфляция</div></div>
+    <div class="cycle-pill" id="cyclePill">СТАРТ</div>
+  </div>
+</header>
+
+<div id="main">
+
+  <div class="bank-card">
+    <div class="bank-inner">
+      <div class="bank-icon">🏦</div>
+      <div style="flex:1">
+        <div class="bank-label">Ростовщик</div>
+        <div class="bank-money" id="bankMoney">100</div>
+        <div class="bank-sub">единиц в резерве</div>
+        <div class="wealth-bar-track"><div class="wealth-bar-fill" id="bankWBar" style="width:20%"></div></div>
+        <div class="wealth-label"><span>Доля богатства</span><span id="bankWPct">20%</span></div>
+      </div>
+    </div>
+    <div class="bank-right">
+      <div class="bank-stat"><div class="bs-val" id="bsLoans">0</div><div class="bs-lbl">Кредитов</div></div>
+      <div class="bank-stat"><div class="bs-val red" id="bsBankrupts">0</div><div class="bs-lbl">Банкротов</div></div>
+      <div class="bank-stat"><div class="bs-val" id="bsOwned">0/4</div><div class="bs-lbl">Владеет</div></div>
+    </div>
+  </div>
+
+  <div id="bankOwnsRow" style="display:none" class="bank-owns-row">
+    <strong>🦈 Банк владеет бизнесами:</strong>
+    <span id="bankOwnsChips"></span>
+  </div>
+
+  <div class="section-title">Игроки</div>
+  <div id="playersGrid"></div>
+
+  <div class="chart-wrap">
+    <div class="chart-header">
+      <div class="section-title" style="margin-bottom:0">История богатства</div>
+      <div class="chart-legend" id="chartLegend"></div>
+    </div>
+    <canvas id="chart" height="108"></canvas>
+  </div>
+
+  <div class="log-wrap">
+    <div class="log-head"><span>Журнал событий</span><span id="logCount">0</span></div>
+    <div class="log-body" id="logBody"></div>
+  </div>
+
+</div>
+
+<footer>
+  <button class="btn-next" id="btnNext" onclick="nextCycle()">▶ Следующий цикл</button>
+  <button class="btn-auto" id="btnAuto" onclick="toggleAuto()">⟳ Авто</button>
+  <button class="btn-reset" onclick="resetGame()">↺ Сброс</button>
+  <div class="footer-info" id="footerInfo">Нажмите <strong>«Следующий цикл»</strong> для симуляции</div>
+</footer>
+</div>
+
+<div id="gameOver">
+  <div class="go-box">
+    <button class="go-close" onclick="document.getElementById('gameOver').classList.remove('show')" title="Вернуться к полю">✕</button>
+    <div class="go-title">🦈 АКУЛА ПОБЕДИЛА</div>
+    <div class="go-sub" id="goSub">Все бизнесы поглощены банком</div>
+    <div class="go-grid" id="goGrid"></div>
+    <div class="go-insight">
+      💡 <strong>Почему банк всегда выигрывает:</strong><br>
+      Кредит вливает деньги в систему, но долг <em>больше</em> выданного —
+      разницы (процентов) в системе не существует. Игроки конкурируют
+      за ограниченную массу денег, постепенно отдавая её банку.
+      Кто не успевает погасить долг за 10 циклов — теряет бизнес.
+    </div>
+    <button class="btn-next" onclick="resetGame();document.getElementById('gameOver').classList.remove('show')">↺ Играть снова</button>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────
+const P_COLORS = ['#4ecad0','#6dda8a','#e8934a','#b07ee8'];
+const P_NAMES  = ['Пекарь','Автослесарь','Строитель','Перевозчик'];
+const N = 4;
+const INIT_BANK = 100, INIT_P = 100;
+const CONSUME_MIN = 1, CONSUME_MAX = 10;
+const LOAN_THRESH = 50, LOAN_AMT = 50, LOAN_RATE = 0.10;
+const INTEREST_RATE = 0.10;
+const DEBT_LIMIT = 10;   // циклов с непогашенным долгом → банкротство
+const YOU = 0;
+
+// ── STATE ─────────────────────────────────────────────────────────
+let S = {}, hist = [], log = [], autoOn = false, autoTmr = null;
+
+function init() {
+  S = {
+    cycle: 0,
+    bank: INIT_BANK,
+    players: Array.from({length: N}, (_, i) => ({
+      id: i,
+      name: P_NAMES[i],
+      isYou: i === YOU,
+      money: INIT_P,
+      debt: 0,
+      debtCycles: 0,    // счётчик циклов с непогашенным долгом
+      bankrupt: false,
+      ownedByBank: false,
+      loans: 0,
+      markup: 0,        // надбавка к платежам (= текущий плановый взнос банку)
+    })),
+    stats: {loans: 0, bankrupts: 0, interestCollected: 0, seized: 0, principalIssued: 0},
+    done: false,
+  };
+  hist = [snap()];
+  log = [];
+  render();
+  renderLog();
+  drawChart();
+}
+
+function snap() {
+  return {
+    cycle: S.cycle,
+    bank: S.bank,
+    pm: S.players.map(p => ({m: p.money, d: p.debt, o: p.ownedByBank})),
+    total: totalMoney(),
+  };
+}
+function totalMoney() { return S.bank + S.players.reduce((a, p) => a + p.money, 0); }
+
+// ── GAME LOGIC ────────────────────────────────────────────────────
+function nextCycle() {
+  if (S.done) return;
+  S.cycle++;
+  const cl = [];
+  cl.push({t:'h', txt:`── Цикл ${S.cycle} ──`});
+
+  // Only free (not seized) players participate
+  const free = S.players.filter(p => !p.ownedByBank);
+
+  // STEP 3 (first): Pay installment = 20% of original loan per cycle
+  free.forEach(p => {
+    if (p.debt <= 0) return;
+    const installment = +(LOAN_AMT * 0.20).toFixed(2); // 10 единиц (20% от 50)
+    const due = Math.min(installment, p.debt);          // не больше остатка
+    if (p.money >= due) {
+      // Плановый взнос выплачен
+      S.bank  = +(S.bank + due).toFixed(2);
+      p.money = +(p.money - due).toFixed(2);
+      p.debt  = +(p.debt - due).toFixed(2);
+      p.debtCycles = 0; // вовремя — счётчик сбрасывается
+      if (p.debt <= 0.01) {
+        p.debt = 0;
+        p.markup = 0; // долг закрыт — надбавка снимается
+        cl.push({t:'p', txt:`${p.name}: взнос ${due.toFixed(2)} — долг закрыт, надбавка снята ✓`});
+      } else {
+        cl.push({t:'p', txt:`${p.name}: взнос ${due.toFixed(2)}, ост. долг ${p.debt.toFixed(2)}`});
+      }
+    } else if (p.money >= 0.5) {
+      // Частичный взнос — считается просрочкой
+      const partial = +p.money.toFixed(2);
+      S.bank  = +(S.bank + partial).toFixed(2);
+      p.debt  = +(p.debt - partial).toFixed(2);
+      p.money = 0;
+      cl.push({t:'p', txt:`${p.name}: неполный взнос ${partial.toFixed(2)}, ост. ${p.debt.toFixed(2)} ⚠`});
+    } else {
+      // Нечем платить — просрочка
+      cl.push({t:'i', txt:`${p.name}: нет денег на взнос (ост. долг ${p.debt.toFixed(2)})`});
+    }
+  });
+
+  // STEP 2: Issue loan ONLY if player has NO existing debt and money < threshold
+  free.forEach(p => {
+    if (p.debt > 0) return;  // ← НЕ брать новый кредит при наличии долга
+    if (p.money < LOAN_THRESH && S.bank >= LOAN_AMT) {
+      const newDebt = +(LOAN_AMT * (1 + LOAN_RATE)).toFixed(2);
+      p.money = +(p.money + LOAN_AMT).toFixed(2);
+      p.debt  = newDebt;
+      p.debtCycles = 0;
+      S.bank  = +(S.bank - LOAN_AMT).toFixed(2);
+      S.stats.loans++;
+      S.stats.principalIssued += LOAN_AMT;
+      p.loans++;
+      p.markup = +(LOAN_AMT * 0.20).toFixed(2); // надбавка = плановый взнос 20% кредита
+      cl.push({t:'l', txt:`${p.name}: кредит +${LOAN_AMT}, долг ${newDebt}, надбавка +${p.markup}`});
+    }
+  });
+
+  // STEP 1: Consume — spend 1..10 + recipient's markup to another free player
+  free.forEach(p => {
+    const baseSpend = Math.floor(Math.random() * (CONSUME_MAX - CONSUME_MIN + 1)) + CONSUME_MIN;
+    const others = free.filter(q => q.id !== p.id);
+    if (others.length > 0) {
+      const r = others[Math.floor(Math.random() * others.length)];
+      // Если получатель в долгу — он добавляет надбавку к своей цене услуги
+      const surcharge = r.markup;
+      const total = +(baseSpend + surcharge).toFixed(2);
+      const actual = Math.min(total, p.money);
+      if (actual <= 0) return;
+      p.money = +(p.money - actual).toFixed(2);
+      r.money = +(r.money + actual).toFixed(2);
+      if (surcharge > 0) {
+        cl.push({t:'c', txt:`${p.name} → ${r.name}: ${actual} (${baseSpend}+${surcharge} надб.)`});
+      } else {
+        cl.push({t:'c', txt:`${p.name} → ${r.name}: ${actual}`});
+      }
+    } else {
+      const actual = Math.min(baseSpend, p.money);
+      p.money = +(p.money - actual).toFixed(2);
+    }
+    if (p.money < 0) p.money = 0;
+  });
+
+  // STEP 4: Grow unpaid debt by 10% and increment overdue counter
+  free.forEach(p => {
+    if (p.debt <= 0) return;
+    const before = p.debt;
+    p.debt = +(p.debt * (1 + INTEREST_RATE)).toFixed(2);
+    p.debtCycles++;
+    cl.push({t:'i', txt:`${p.name}: % ${before.toFixed(1)}→${p.debt.toFixed(1)}, просрочка ${p.debtCycles}/${DEBT_LIMIT}`});
+  });
+
+  // BANKRUPTCY CHECK: 10 циклов с непогашенным долгом → банк захватывает бизнес
+  free.forEach(p => {
+    if (p.ownedByBank || p.debt <= 0) return;
+    if (p.debtCycles >= DEBT_LIMIT) {
+      const seized = +p.money.toFixed(2);
+      S.bank = +(S.bank + seized).toFixed(2);
+      S.stats.bankrupts++;
+      S.stats.seized = +(S.stats.seized + seized).toFixed(2);
+      p.ownedByBank = true;
+      p.bankrupt    = true;
+      p.money = 0;
+      p.debt  = 0;
+      p.debtCycles = 0;
+      cl.push({t:'o', txt:`🦈 ${p.name}: БАНКРОТ после ${DEBT_LIMIT} циклов! Банк изъял ${seized.toFixed(1)} ед. и бизнес!`});
+    }
+  });
+
+  cl.forEach(e => log.unshift(e));
+  hist.push(snap());
+
+  // Game over: all seized OR only 1 free player left
+  const freeNow = S.players.filter(p => !p.ownedByBank);
+  if (freeNow.length === 0 || freeNow.length === 1) S.done = true;
+
+  render();
+  renderLog();
+  drawChart();
+  if (S.done) setTimeout(showGameOver, 700);
+}
+
+// ── RENDER ────────────────────────────────────────────────────────
+function render() {
+  const free  = S.players.filter(p => !p.ownedByBank);
+  const owned = S.players.filter(p => p.ownedByBank);
+  const total = totalMoney();
+  const bankPct = Math.min(100, (S.bank / Math.max(total, 1)) * 100);
+
+  setTxt('hCycle', S.cycle);
+  setTxt('hFree',  `${free.length}/${N}`);
+  setTxt('hOwned', owned.length);
+  setTxt('cyclePill', `ЦИКЛ ${S.cycle}`);
+
+  animVal('bankMoney', S.bank.toFixed(0));
+  document.getElementById('bankWBar').style.width = bankPct.toFixed(1) + '%';
+  setTxt('bankWPct', bankPct.toFixed(1) + '%');
+  setTxt('bsLoans', S.stats.loans);
+  setTxt('bsBankrupts', S.stats.bankrupts);
+  setTxt('bsOwned', `${owned.length}/${N}`);
+  setTxt('hInterest', (S.stats.loans * LOAN_AMT * LOAN_RATE).toFixed(0));
+  // Инфляция = среднее арифметическое надбавок у игроков с активным долгом
+  const withMarkup = S.players.filter(p => !p.ownedByBank && p.markup > 0);
+  const avgInflation = withMarkup.length > 0
+    ? (withMarkup.reduce((s, p) => s + p.markup, 0) / withMarkup.length).toFixed(1)
+    : '0';
+  setTxt('hInflation', avgInflation);
+
+  // Bank owns chips row
+  const ownsRow = document.getElementById('bankOwnsRow');
+  if (owned.length > 0) {
+    ownsRow.style.display = 'flex';
+    document.getElementById('bankOwnsChips').innerHTML =
+      owned.map(p => `<span class="own-chip">🦈 ${p.name}</span>`).join('');
+  } else {
+    ownsRow.style.display = 'none';
+  }
+
+  // Players grid
+  const grid = document.getElementById('playersGrid');
+  grid.innerHTML = '';
+  S.players.forEach(p => {
+    const color = P_COLORS[p.id];
+    const div = document.createElement('div');
+
+    if (p.ownedByBank) {
+      // ── Seized card ──
+      div.className = `pcard bank-owned${p.isYou ? ' you' : ''}`;
+      div.innerHTML = `
+        <div class="pcard-accent"></div>
+        <div class="owned-banner">🦈 СОБСТВЕННОСТЬ БАНКА</div>
+        <div class="owned-shark-bg">🦈</div>
+        <div class="pcard-header" style="margin-top:20px">
+          <div class="pcard-name" style="color:var(--gold)">
+            ${p.name}${p.isYou ? '<span class="bank-seal">ВЫ</span>' : ''}
+          </div>
+          <span style="font-size:9px;color:var(--muted)">захвачен</span>
+        </div>
+        <div class="pcard-money" style="color:var(--muted);font-size:15px;letter-spacing:0.05em">— поглощён —</div>
+        <div class="pcard-money-lbl">бизнес изъят банком</div>
+        <div class="pcard-debt-row" style="margin-top:4px">
+          <span class="debt-lbl">Долг</span>
+          <span class="debt-val zero">аннулирован</span>
+        </div>`;
+    } else {
+      // ── Free player card ──
+      const barW = Math.max(0, Math.min(100, (p.money / INIT_P) * 100));
+      const moneyColor = p.money < 20 ? '#e05a54' : color;
+
+      // Debt countdown pips
+      let pipsHtml = '';
+      if (p.debt > 0) {
+        const pips = Array.from({length: DEBT_LIMIT}, (_, i) => {
+          const filled = i < p.debtCycles;
+          const danger = filled && p.debtCycles >= 7;
+          return `<div class="pip${filled ? (danger ? ' danger' : ' used') : ''}"></div>`;
+        }).join('');
+        const warn = p.debtCycles >= 7
+          ? `<span style="color:#e05a54;font-size:9px;margin-left:4px">⚠ ${DEBT_LIMIT - p.debtCycles} цикл(а)!</span>`
+          : '';
+        pipsHtml = `<div class="pips-row">
+          <span class="pips-lbl">Просрочка ${p.debtCycles}/${DEBT_LIMIT}</span>
+          <div class="pips">${pips}</div>${warn}
+        </div>`;
+      }
+
+      div.className = `pcard${p.isYou ? ' you' : ''}`;
+      div.innerHTML = `
+        <div class="pcard-accent" style="background:${color}"></div>
+        <div class="pcard-header">
+          <div class="pcard-name" style="color:${color}">${p.name}</div>
+          ${p.isYou ? '<span class="you-badge">ВЫ</span>' : '<span class="ai-badge">ИИ</span>'}
+        </div>
+        <div class="pcard-money" style="color:${moneyColor}">${p.money.toFixed(1)}</div>
+        <div class="pcard-money-lbl">единиц</div>
+        <div class="pcard-debt-row">
+          <span class="debt-lbl">Долг</span>
+          <span class="debt-val${p.debt <= 0 ? ' zero' : ''}">${p.debt > 0 ? p.debt.toFixed(2) : '—'}</span>
+        </div>
+        ${p.markup > 0 ? `<div style="font-size:9px;color:#d97aba;margin-top:3px">↑ надбавка +${p.markup} к цене услуг</div>` : ''}
+        ${pipsHtml}
+        <div class="pcard-bar">
+          <div class="pcard-bar-fill" style="background:${color};width:${barW}%"></div>
+        </div>`;
+    }
+    grid.appendChild(div);
+  });
+
+  // Footer info
+  const fi = document.getElementById('footerInfo');
+  if (S.done) {
+    fi.innerHTML = `<strong style="color:var(--gold-light)">🦈 Банк захватил все бизнесы за ${S.cycle} циклов!</strong>`;
+    document.getElementById('btnNext').disabled = true;
+  } else {
+    const atRisk = S.players.filter(p => !p.ownedByBank && p.debtCycles >= 7).length;
+    fi.innerHTML = free.length === 1
+      ? `<span style="color:#e05a54">Последний свободный!</span>`
+      : `Свободных: <strong>${free.length}</strong>/${N}` +
+        (atRisk > 0 ? ` · <span style="color:#e05a54">На грани: ${atRisk}</span>` : '');
+  }
+}
+
+function setTxt(id, v) { const e = document.getElementById(id); if (e) e.textContent = v; }
+function animVal(id, v) {
+  const e = document.getElementById(id); if (!e) return;
+  e.textContent = v; e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop');
+}
+
+// ── LOG ───────────────────────────────────────────────────────────
+function renderLog() {
+  const spanCls = {c:'lc', l:'ll', p:'lp', i:'li', o:'lo'};
+  document.getElementById('logBody').innerHTML = log.slice(0, 80).map(e => {
+    if (e.t === 'h') return `<div class="log-line cycle-h">${e.txt}</div>`;
+    const sc = spanCls[e.t] || '';
+    return `<div class="log-line"><span class="${sc}">${e.txt}</span></div>`;
+  }).join('');
+  setTxt('logCount', log.length + ' записей');
+}
+
+// ── CHART ─────────────────────────────────────────────────────────
+function drawChart() {
+  const canvas = document.getElementById('chart');
+  const W = canvas.clientWidth || canvas.parentElement.clientWidth || 360;
+  canvas.width = W;
+  const H = canvas.height = 108;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  if (hist.length < 2) return;
+
+  const PAD = {t:8, r:8, b:20, l:36};
+  const cW = W - PAD.l - PAD.r, cH = H - PAD.t - PAD.b;
+
+  let maxV = 0;
+  hist.forEach(s => { maxV = Math.max(maxV, s.bank, s.total, ...s.pm.map(p => p.m)); });
+  maxV = (maxV || 100) * 1.1;
+
+  const xS = i => PAD.l + (i / Math.max(1, hist.length - 1)) * cW;
+  const yS = v => PAD.t + cH - (v / maxV) * cH;
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 3; i++) {
+    const y = PAD.t + (i / 3) * cH;
+    ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cW, y); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.font = '8px Noto Sans';
+    ctx.textAlign = 'right';
+    ctx.fillText(((1 - i / 3) * maxV).toFixed(0), PAD.l - 3, y + 3);
+  }
+  ctx.fillStyle = 'rgba(255,255,255,0.2)'; ctx.font = '8px Noto Sans'; ctx.textAlign = 'center';
+  const step = Math.max(1, Math.floor(hist.length / 6));
+  for (let i = 0; i < hist.length; i += step) ctx.fillText(hist[i].cycle, xS(i), H - PAD.b + 12);
+
+  // total money (dashed)
+  ctx.strokeStyle = 'rgba(201,146,42,0.25)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  hist.forEach((s, i) => { i ? ctx.lineTo(xS(i), yS(s.total)) : ctx.moveTo(xS(i), yS(s.total)); });
+  ctx.stroke(); ctx.setLineDash([]);
+
+  // bank line
+  ctx.strokeStyle = '#c9922a'; ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  hist.forEach((s, i) => { i ? ctx.lineTo(xS(i), yS(s.bank)) : ctx.moveTo(xS(i), yS(s.bank)); });
+  ctx.stroke();
+
+  // player lines
+  S.players.forEach((pl, pid) => {
+    ctx.strokeStyle = P_COLORS[pid];
+    ctx.lineWidth = pl.isYou ? 2 : 1.2;
+    ctx.globalAlpha = pl.ownedByBank ? 0.18 : 0.9;
+    ctx.beginPath();
+    hist.forEach((s, i) => { i ? ctx.lineTo(xS(i), yS(s.pm[pid]?.m || 0)) : ctx.moveTo(xS(i), yS(s.pm[pid]?.m || 0)); });
+    ctx.stroke(); ctx.globalAlpha = 1;
+  });
+
+  document.getElementById('chartLegend').innerHTML =
+    `<div class="leg-item"><div class="leg-dot" style="background:#c9922a"></div>Банк</div>` +
+    S.players.map((p, i) =>
+      `<div class="leg-item">
+        <div class="leg-dot" style="background:${P_COLORS[i]};opacity:${p.ownedByBank ? .2 : 1}"></div>
+        ${p.name}${p.isYou ? ' ★' : ''}${p.ownedByBank ? ' 🦈' : ''}
+      </div>`
+    ).join('') +
+    `<div class="leg-item"><div class="leg-dot" style="background:rgba(201,146,42,.3);border:1px dashed rgba(201,146,42,.5)"></div>Всего</div>`;
+}
+
+// ── GAMEOVER ──────────────────────────────────────────────────────
+function showGameOver() {
+  const freeAtEnd = S.players.filter(p => !p.ownedByBank);
+  const endReason = freeAtEnd.length === 1 ? `Остался 1 игрок — ${freeAtEnd[0].name}` : `Все ${N} бизнеса захвачены`;
+  document.getElementById('goSub').textContent = `${endReason} — ${S.cycle} циклов`;
+  document.getElementById('goGrid').innerHTML = `
+    <div class="go-stat"><div class="go-stat-v">${S.cycle}</div><div class="go-stat-l">Циклов</div></div>
+    <div class="go-stat"><div class="go-stat-v">${S.bank.toFixed(0)}</div><div class="go-stat-l">Денег у банка</div></div>
+    <div class="go-stat"><div class="go-stat-v">${S.stats.loans}</div><div class="go-stat-l">Кредитов выдано</div></div>
+    <div class="go-stat"><div class="go-stat-v">${S.stats.seized.toFixed(0)}</div><div class="go-stat-l">Изъято активов</div></div>`;
+  document.getElementById('gameOver').classList.add('show');
+}
+
+// ── AUTO / RESET ──────────────────────────────────────────────────
+function toggleAuto() {
+  autoOn = !autoOn;
+  const btn = document.getElementById('btnAuto');
+  btn.classList.toggle('on', autoOn);
+  btn.textContent = autoOn ? '⏸ Пауза' : '⟳ Авто';
+  if (autoOn) {
+    autoTmr = setInterval(() => {
+      if (S.done || !autoOn) { stopAuto(); return; }
+      nextCycle();
+    }, 500);
+  } else stopAuto();
+}
+function stopAuto() {
+  clearInterval(autoTmr); autoOn = false;
+  const btn = document.getElementById('btnAuto');
+  btn.classList.remove('on'); btn.textContent = '⟳ Авто';
+}
+function resetGame() {
+  stopAuto();
+  document.getElementById('btnNext').disabled = false;
+  init();
+  document.getElementById('gameOver').classList.remove('show');
+}
+
+window.addEventListener('load', init);
+window.addEventListener('resize', drawChart);
+</script>
+</body>
+</html>
