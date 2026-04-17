@@ -14,7 +14,7 @@ tags:
 Первая версия редактора-симулятора для моделирования экономических связей и протекания экономиеских процессов.
 
 Симулятор:
-https://economica.su/simulators/economic-simulator.html
+[СИМС-ЭЧ v0.1.2](https://economica.su/simulators/economic-simulator.html)
 
 Демонстрационная модель:
-https://economica.su/simulators/economic-model.json
+[Модель которую можно открыть в симуляторе](https://economica.su/simulators/economic-model.json)
