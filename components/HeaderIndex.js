@@ -31,7 +31,7 @@ function HeaderIndex (props){
                             {/*    </a>*/}
                             {/*</Link>*/}
                             Экономические модели и симуляторы</h1>
-                        <h2 className="site-description">economica.su</h2>
+                        <h2 className="site-description">economica.su(сайт в разработке)</h2>
                     </div>
 
 
