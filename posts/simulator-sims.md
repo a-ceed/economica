@@ -5,7 +5,7 @@ annotation: "Экономический редактор и симулятор."
 category: 
 date: "2026-04-15"
 previewImage: "simulator.png"
-bannerImage: "simulator.jpg"
+bannerImage: "simulator.png"
 author: "Тёмный Эколог"
 tags:
     - 
