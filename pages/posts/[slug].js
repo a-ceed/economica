@@ -3,7 +3,7 @@ import Image from "next/image";
 import Head from "next/head";
 import fs from "fs";
 import matter from "gray-matter";
-import md from 'markdown-it';
+import { md } from '../../markdown-it.config.js';
 import Layout from "../../components/Layout";
 
 import avatar from "../../public/dark8.png";
@@ -69,7 +69,7 @@ export default function Post({frontmatter, content, slug}) {
             <div className="imgcontainer"><img src={"https://economica.su/"+bannerImage}/></div>
 
             <section className="post-full-content">
-                <div className="post-content load-external-scripts" dangerouslySetInnerHTML={{ __html: md().render(content) }} />
+                <div className="post-content load-external-scripts" dangerouslySetInnerHTML={{ __html: md.render(content) }} />
 
                 {/*Ссылки телеграм*/}
                 <div className="wrapper-telegram" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
